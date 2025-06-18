@@ -191,8 +191,20 @@ export class MCPServer {
         vital_signs: this.context.patient.vital_signs,
       }
 
-      // Enhanced AI prescription generation with MCP context
-      const aiResponse = await genericAIService.generatePrescriptionRecommendations(prescriptionRequest)
+      // Enhanced AI prescription generation with timeout protection
+      let aiResponse
+      try {
+        aiResponse = await Promise.race([
+          genericAIService.generatePrescriptionRecommendations(prescriptionRequest),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('AI prescription generation timeout')), 15000)
+          )
+        ])
+        console.log("✅ AI prescription generated successfully")
+      } catch (timeoutError) {
+        console.warn("⚠️ AI prescription generation timed out, using fallback")
+        aiResponse = this.generateFallbackPrescription(prescriptionRequest)
+      }
 
       // Enhance with MCP intelligence
       const enhancedResponse = await this.enhanceWithMCPIntelligence(aiResponse)
@@ -209,6 +221,46 @@ export class MCPServer {
     } catch (error) {
       console.error("❌ MCP: Prescription generation failed:", error)
       throw new Error("Failed to generate AI prescription")
+    }
+  }
+
+  // Fallback prescription generator when AI times out
+  private generateFallbackPrescription(request: any): any {
+    console.log("🔄 Generating fallback prescription")
+    
+    return {
+      medications: [
+        {
+          name: "Follow healthcare provider recommendations",
+          generic_name: "As prescribed",
+          dosage: "As directed by physician",
+          frequency: "Follow medical advice",
+          duration: "As prescribed",
+          route: "As directed",
+          instructions: "Take medications as prescribed by your healthcare provider",
+          warnings: ["Consult doctor before making any changes"],
+          interactions: [],
+          cost_estimate: "Varies"
+        }
+      ],
+      reasoning: `Based on diagnosis: ${request.diagnosis}. Please consult with healthcare provider for specific medications.`,
+      confidence_score: 60,
+      alternative_treatments: [
+        "Lifestyle modifications",
+        "Regular monitoring",
+        "Follow-up consultations"
+      ],
+      follow_up_recommendations: [
+        "Schedule follow-up appointment",
+        "Monitor symptoms",
+        "Report any adverse effects"
+      ],
+      red_flags: [
+        "Severe or worsening symptoms",
+        "Unexpected side effects"
+      ],
+      drug_interactions: [],
+      contraindications: []
     }
   }
 

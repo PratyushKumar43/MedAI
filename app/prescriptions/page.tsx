@@ -14,28 +14,246 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
-const generatePrescriptionPDF = async (patient: PatientDetails) => {
-  const { genericAIService } = await import("@/lib/generic-ai")
-
-  const prompt = `Generate a professional medical prescription PDF content for:
-  Patient: ${patient.name}
-  Age: ${patient.age}
-  Diagnoses: ${patient.diagnosis.join(", ")}
-  Current Medications: ${patient.current_medications.join(", ")}
-  Allergies: ${patient.allergies.join(", ")}
+const generatePrescriptionPDF = (patient: PatientDetails) => {
+  // Generate prescription HTML directly without AI to avoid timeout
+  const currentDate = new Date().toLocaleDateString()
+  const prescriptionNumber = `RX-${Date.now()}`
   
-  Create a properly formatted prescription document with:
-  1. Patient information header
-  2. Current diagnoses
-  3. Prescribed medications with dosages
-  4. Instructions for use
-  5. Doctor signature line
-  6. Date and prescription number
-  
-  Format as HTML that can be converted to PDF.`
-
-  const response = await genericAIService.generatePrescription(prompt, patient)
-  return response // This would be the PDF data
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Medical Prescription - ${patient.name}</title>
+        <style>
+            @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+                .page-break { page-break-before: always; }
+            }
+            
+            body {
+                font-family: 'Arial', sans-serif;
+                line-height: 1.6;
+                margin: 20px;
+                color: #333;
+                background: #fff;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            
+            .prescription-header {
+                text-align: center;
+                border-bottom: 2px solid #0066cc;
+                padding-bottom: 20px;
+                margin-bottom: 30px;
+            }
+            
+            .prescription-header h1 {
+                color: #0066cc;
+                margin: 0;
+                font-size: 24px;
+                font-weight: bold;
+            }
+            
+            .prescription-number {
+                background: #f0f7ff;
+                padding: 10px;
+                border-radius: 5px;
+                margin: 20px 0;
+                text-align: center;
+                font-weight: bold;
+            }
+            
+            .patient-info {
+                background: #f9f9f9;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 30px;
+            }
+            
+            .patient-info h2 {
+                color: #0066cc;
+                margin-top: 0;
+                margin-bottom: 15px;
+                font-size: 18px;
+            }
+            
+            .info-row {
+                display: flex;
+                margin-bottom: 10px;
+            }
+            
+            .info-label {
+                font-weight: bold;
+                min-width: 120px;
+                color: #555;
+            }
+            
+            .medications-section {
+                margin: 30px 0;
+            }
+            
+            .medications-section h2 {
+                color: #0066cc;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+            
+            .medication-item {
+                background: #fff;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .medication-name {
+                font-weight: bold;
+                font-size: 16px;
+                color: #0066cc;
+                margin-bottom: 5px;
+            }
+            
+            .medication-instructions {
+                color: #666;
+                margin-top: 5px;
+            }
+            
+            .allergies-section {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 5px;
+                padding: 15px;
+                margin: 20px 0;
+            }
+            
+            .allergies-section h3 {
+                color: #d63031;
+                margin-top: 0;
+                font-size: 16px;
+            }
+            
+            .signature-section {
+                margin-top: 50px;
+                border-top: 1px solid #ddd;
+                padding-top: 30px;
+            }
+            
+            .signature-line {
+                border-bottom: 1px solid #333;
+                width: 300px;
+                margin: 30px 0 10px 0;
+            }
+            
+            .doctor-info {
+                margin-top: 20px;
+                font-size: 14px;
+                color: #666;
+            }
+            
+            .footer {
+                margin-top: 40px;
+                text-align: center;
+                font-size: 12px;
+                color: #999;
+                border-top: 1px solid #eee;
+                padding-top: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="prescription-header">
+            <h1>MEDICAL PRESCRIPTION</h1>
+            <p>MedApp Healthcare System</p>
+        </div>
+        
+        <div class="prescription-number">
+            Prescription #: ${prescriptionNumber}
+        </div>
+        
+        <div class="patient-info">
+            <h2>Patient Information</h2>
+            <div class="info-row">
+                <span class="info-label">Name:</span>
+                <span>${patient.name}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Age:</span>
+                <span>${patient.age} years</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Gender:</span>
+                <span>${patient.gender || 'Not specified'}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Date:</span>
+                <span>${currentDate}</span>
+            </div>
+        </div>
+        
+        ${patient.allergies && patient.allergies.length > 0 ? `
+        <div class="allergies-section">
+            <h3>⚠️ ALLERGIES</h3>
+            <p><strong>${patient.allergies.join(", ")}</strong></p>
+        </div>
+        ` : ''}
+        
+        <div class="medications-section">
+            <h2>Current Diagnoses</h2>
+            ${patient.diagnosis && patient.diagnosis.length > 0 ? 
+              patient.diagnosis.map(d => `<div class="medication-item">• ${d}</div>`).join('') :
+              '<div class="medication-item">No current diagnoses on file</div>'
+            }
+        </div>
+        
+        <div class="medications-section">
+            <h2>Prescribed Medications</h2>
+            ${patient.current_medications && patient.current_medications.length > 0 ? 
+              patient.current_medications.map(med => `
+                <div class="medication-item">
+                    <div class="medication-name">${med}</div>
+                    <div class="medication-instructions">Take as directed by physician</div>
+                </div>
+              `).join('') :
+              '<div class="medication-item">No current medications prescribed</div>'
+            }
+        </div>
+        
+        <div class="signature-section">
+            <p><strong>Doctor's Instructions:</strong></p>
+            <p>Please follow the prescribed medication regimen. Contact our office if you experience any adverse effects.</p>
+            
+            <div style="margin-top: 40px;">
+                <p>Doctor's Signature:</p>
+                <div class="signature-line"></div>
+                <div class="doctor-info">
+                    <p>Dr. [Doctor Name]</p>
+                    <p>MedApp Healthcare System</p>
+                    <p>License #: [License Number]</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>This prescription was generated on ${currentDate}</p>
+            <p>MedApp Healthcare System - Prescription #${prescriptionNumber}</p>
+        </div>
+        
+        <script>
+            // Auto-trigger print dialog after page loads
+            window.onload = function() {
+                setTimeout(function() {
+                    window.print();
+                }, 500);
+            }
+        </script>
+    </body>
+    </html>
+  `
 }
 
 export default function PrescriptionsPage() {
@@ -52,6 +270,7 @@ export default function PrescriptionsPage() {
   const [currentView, setCurrentView] = useState<"prescriptions" | "patients" | "ai-workflow">("prescriptions")
   const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null)
   const [currentDate, setCurrentDate] = useState<Date | null>(null)
+  const [selectedPatientForForm, setSelectedPatientForForm] = useState<string>("")
 
   useEffect(() => {
     // Initialize date on client side to avoid hydration mismatch
@@ -257,47 +476,594 @@ export default function PrescriptionsPage() {
     setSelectedPatient(null)
   }
 
-  const handleDownloadPatientData = (patient: PatientDetails) => {
-    // Get prescriptions for this patient
-    const patientPrescriptions = prescriptions.filter(p => p.patients?.name === patient.name)
-    
-    const patientData = {
-      personalInfo: {
-        id: patient.id,
-        name: patient.name,
-        age: patient.age,
-        dateOfBirth: patient.date_of_birth,
-        email: patient.email,
-        phone: patient.phone,
-        address: patient.address,
-        gender: patient.gender || "Not specified",
-      },
-      medicalInfo: {
-        diagnosis: patient.diagnosis,
-        allergies: patient.allergies,
-        medicalHistory: patient.medical_history,
-        currentMedications: patient.current_medications,
-        vitalSigns: patient.vital_signs,
-      },
-      labResults: patient.lab_results,
-      visitHistory: patient.visit_history,
-      insuranceInfo: patient.insurance_info,
-      emergencyContact: patient.emergency_contact,
-      prescriptions: patientPrescriptions,
-      downloadDate: new Date().toISOString(),
+  const handleDownloadPatientData = async (patient: PatientDetails) => {
+    try {
+      // Get prescriptions for this patient
+      const patientPrescriptions = prescriptions.filter(p => p.patients?.name === patient.name)
+      
+      const patientData = {
+        personalInfo: {
+          id: patient.id,
+          name: patient.name,
+          age: patient.age,
+          dateOfBirth: patient.date_of_birth,
+          email: patient.email,
+          phone: patient.phone,
+          address: patient.address,
+          gender: patient.gender || "Not specified",
+        },
+        medicalInfo: {
+          diagnosis: patient.diagnosis,
+          allergies: patient.allergies,
+          medicalHistory: patient.medical_history,
+          currentMedications: patient.current_medications,
+          vitalSigns: patient.vital_signs,
+        },
+        labResults: patient.lab_results,
+        visitHistory: patient.visit_history,
+        insuranceInfo: patient.insurance_info,
+        emergencyContact: patient.emergency_contact,
+        prescriptions: patientPrescriptions,
+        downloadDate: new Date().toISOString(),
+      }
+
+      // Generate HTML directly without AI to avoid timeout
+      const htmlContent = generatePatientReportHTML(patientData)
+      
+      // Create a new window with the PDF content for printing
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(htmlContent)
+        printWindow.document.close()
+        
+        // Wait for content to load then trigger print
+        setTimeout(() => {
+          printWindow.print()
+          printWindow.close()
+        }, 1000)
+      } else {
+        // Fallback: download as HTML file
+        const dataBlob = new Blob([htmlContent], { type: "text/html" })
+        const url = URL.createObjectURL(dataBlob)
+        
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `${patient.name.replace(/\s+/g, "_")}_medical_report.html`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      console.error('Error generating patient report:', error)
+      alert('Failed to generate patient report. Please try again.')
     }
+  }
 
-    const dataStr = JSON.stringify(patientData, null, 2)
-    const dataBlob = new Blob([dataStr], { type: "application/json" })
-    const url = URL.createObjectURL(dataBlob)
+  const generatePatientReportHTML = (patientData: any) => {
+    const currentDate = new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    })
+    const currentTime = new Date().toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZoneName: 'short'
+    })
 
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${patient.name.replace(/\s+/g, "_")}_complete_medical_records.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    // Limit prescriptions to last 5 for compactness
+    const prescriptions = Array.isArray(patientData.prescriptions)
+      ? patientData.prescriptions.slice(-5)
+      : []
+
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Patient Medical Report - ${patientData.personalInfo.name}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            @media print {
+                body { margin: 0; -webkit-print-color-adjust: exact; }
+                .no-print { display: none; }
+                .page-break { page-break-before: always; }
+                .section { break-inside: avoid; }
+            }
+            body {
+                font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+                font-size: 13px;
+                margin: 0;
+                padding: 8px;
+                color: #1f2937;
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                line-height: 1.5;
+            }
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                overflow: hidden;
+                border: 1px solid #e2e8f0;
+            }
+            .header {
+                background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+                color: #fff;
+                padding: 20px 15px 15px 15px;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+            .header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="80" cy="80" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="40" cy="60" r="1" fill="rgba(255,255,255,0.03)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            }
+            .header-content {
+                position: relative;
+                z-index: 1;
+            }
+            .clinic-logo {
+                width: 60px;
+                height: 60px;
+                background: rgba(255,255,255,0.15);
+                border-radius: 50%;
+                margin: 0 auto 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                border: 2px solid rgba(255,255,255,0.2);
+                backdrop-filter: blur(10px);
+            }
+            .clinic-info {
+                font-size: 24px;
+                font-weight: 700;
+                margin-bottom: 4px;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                letter-spacing: -0.5px;
+            }
+            .clinic-subtitle {
+                font-size: 13px;
+                font-weight: 400;
+                opacity: 0.9;
+                margin-bottom: 12px;
+                letter-spacing: 0.5px;
+            }
+            .report-title {
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 6px;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            }
+            .report-date {
+                font-size: 11px;
+                opacity: 0.85;
+                background: rgba(255,255,255,0.12);
+                padding: 4px 12px;
+                border-radius: 12px;
+                display: inline-block;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+            .content {
+                padding: 20px 15px 12px 15px;
+            }
+            .patient-summary {
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                border-radius: 12px;
+                padding: 16px 12px;
+                margin-bottom: 16px;
+                border: 1px solid #0ea5e9;
+                position: relative;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(14, 165, 233, 0.08);
+            }
+            .patient-summary::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #0ea5e9, #3b82f6, #6366f1);
+            }
+            .patient-name {
+                font-size: 20px;
+                font-weight: 700;
+                color: #0c4a6e;
+                margin-bottom: 4px;
+                letter-spacing: -0.3px;
+            }
+            .patient-id {
+                font-size: 11px;
+                color: #0369a1;
+                background: rgba(14, 165, 233, 0.12);
+                padding: 3px 10px;
+                border-radius: 12px;
+                display: inline-block;
+                margin-bottom: 10px;
+                font-weight: 600;
+                border: 1px solid rgba(14, 165, 233, 0.2);
+            }
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 10px;
+            }
+            .info-item {
+                background: linear-gradient(135deg, #fff 0%, #fafbff 100%);
+                padding: 10px 10px;
+                border-radius: 8px;
+                border-left: 3px solid #3b82f6;
+                border: 1px solid #e2e8f0;
+                transition: all 0.2s ease;
+                position: relative;
+                overflow: hidden;
+            }
+            .info-item::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 1px;
+                background: linear-gradient(90deg, #3b82f6, transparent);
+            }
+            .info-label {
+                font-weight: 600;
+                color: #475569;
+                font-size: 10px;
+                margin-bottom: 3px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .info-value {
+                color: #1e293b;
+                font-size: 13px;
+                font-weight: 500;
+                line-height: 1.3;
+            }
+            .section {
+                margin-bottom: 16px;
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                border: 1px solid #e5e7eb;
+                overflow: hidden;
+                position: relative;
+            }
+            .section::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: linear-gradient(90deg, #f1f5f9, #e2e8f0, #f1f5f9);
+            }
+            .section-header {
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                padding: 12px 12px;
+                border-bottom: 1px solid #e2e8f0;
+                position: relative;
+            }
+            .section-title {
+                font-size: 16px;
+                font-weight: 700;
+                color: #1e293b;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                letter-spacing: -0.2px;
+            }
+            .section-title::before {
+                content: '';
+                width: 4px;
+                height: 20px;
+                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                border-radius: 2px;
+                box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+            }
+            .section-content {
+                padding: 12px 12px 8px 12px;
+            }
+            .prescription-item {
+                background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+                border: 1px solid #bbf7d0;
+                border-radius: 10px;
+                padding: 12px 10px;
+                margin-bottom: 10px;
+                border-left: 4px solid #10b981;
+                position: relative;
+                overflow: hidden;
+                box-shadow: 0 1px 4px rgba(16, 185, 129, 0.08);
+            }
+            .prescription-item::before {
+                content: '💊';
+                position: absolute;
+                top: 10px;
+                right: 12px;
+                font-size: 16px;
+                opacity: 0.4;
+            }
+            .prescription-item::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: linear-gradient(90deg, #10b981, #059669, #047857);
+            }
+            .prescription-med {
+                font-size: 16px;
+                font-weight: 700;
+                color: #047857;
+                margin-bottom: 6px;
+                letter-spacing: -0.2px;
+            }
+            .prescription-details {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+                gap: 8px;
+                font-size: 11px;
+            }
+            .prescription-detail {
+                background: linear-gradient(135deg, #fff 0%, #fafffe 100%);
+                padding: 5px 7px;
+                border-radius: 6px;
+                border: 1px solid rgba(16, 185, 129, 0.15);
+                box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            }
+            .prescription-detail strong {
+                color: #047857;
+                font-weight: 700;
+            }
+            .footer {
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                margin-top: 12px;
+                padding: 14px 12px;
+                text-align: center;
+                border-top: 1px solid #e5e7eb;
+                color: #64748b;
+                font-size: 11px;
+                position: relative;
+            }
+            .footer::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            }
+            .footer-content {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+            .footer-branding {
+                font-size: 14px;
+                font-weight: 700;
+                color: #374151;
+                margin-bottom: 6px;
+                letter-spacing: -0.2px;
+            }
+            .report-id {
+                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                color: #1d4ed8;
+                padding: 4px 12px;
+                border-radius: 12px;
+                display: inline-block;
+                margin: 6px 0;
+                font-weight: 700;
+                font-size: 10px;
+                border: 1px solid rgba(29, 78, 216, 0.2);
+                box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+            }
+            .confidential-notice {
+                background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+                color: #dc2626;
+                padding: 8px 12px;
+                border-radius: 10px;
+                margin-top: 8px;
+                font-weight: 700;
+                border: 1px solid #fca5a5;
+                display: inline-block;
+                font-size: 11px;
+                box-shadow: 0 1px 3px rgba(220, 38, 38, 0.1);
+            }
+            .no-data {
+                color: #9ca3af;
+                font-style: italic;
+                text-align: center;
+                padding: 12px 8px;
+                background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+                border-radius: 10px;
+                border: 2px dashed #d1d5db;
+                font-size: 12px;
+                margin: 8px 0;
+            }
+            .vitals-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 10px;
+            }
+            .vital-item {
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                padding: 10px;
+                border-radius: 8px;
+                border-left: 3px solid #f59e0b;
+                border: 1px solid #f3d15a;
+                text-align: center;
+                box-shadow: 0 1px 3px rgba(245, 158, 11, 0.1);
+            }
+            .vital-label {
+                font-weight: 700;
+                color: #92400e;
+                font-size: 9px;
+                margin-bottom: 3px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .vital-value {
+                color: #78350f;
+                font-size: 14px;
+                font-weight: 700;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="header-content">
+                    <div class="clinic-logo">🏥</div>
+                    <div class="clinic-info">MedApp Healthcare System</div>
+                    <div class="clinic-subtitle">Advanced Medical Care & Patient Management</div>
+                    <div class="report-title">Patient Prescription Report</div>
+                    <div class="report-date">${currentDate} at ${currentTime}</div>
+                </div>
+            </div>
+            <div class="content">
+                <div class="patient-summary">
+                    <div class="patient-name">${patientData.personalInfo.name}</div>
+                    <div class="patient-id">Patient ID: ${patientData.personalInfo.id}</div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Age</div>
+                            <div class="info-value">${patientData.personalInfo.age} years</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value">${patientData.personalInfo.email}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Phone</div>
+                            <div class="info-value">${patientData.personalInfo.phone}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">DOB</div>
+                            <div class="info-value">${patientData.personalInfo.dateOfBirth}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Vital Signs Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Current Vital Signs</h2>
+                    </div>
+                    <div class="section-content">
+                        ${patientData.medicalInfo.vitalSigns && Object.keys(patientData.medicalInfo.vitalSigns).length > 0
+                            ? `<div class="vitals-grid">
+                                ${Object.entries(patientData.medicalInfo.vitalSigns).map(([key, value]) => `
+                                    <div class="vital-item">
+                                        <div class="vital-label">${key.replace(/_/g, ' ')}</div>
+                                        <div class="vital-value">${value || 'N/A'}</div>
+                                    </div>
+                                `).join('')}
+                            </div>`
+                            : '<div class="no-data">No vital signs recorded</div>'
+                        }
+                    </div>
+                </div>
+                
+                <!-- Medical Information Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Medical Information</h2>
+                    </div>
+                    <div class="section-content">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Diagnosis</div>
+                                <div class="info-value">${patientData.medicalInfo.diagnosis || 'Not specified'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Allergies</div>
+                                <div class="info-value">${patientData.medicalInfo.allergies || 'None known'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Medical History</div>
+                                <div class="info-value">${patientData.medicalInfo.medicalHistory || 'None recorded'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Current Medications</div>
+                                <div class="info-value">${patientData.medicalInfo.currentMedications || 'None'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Recent Prescriptions</h2>
+                    </div>
+                    <div class="section-content">
+                        ${prescriptions.length > 0 
+                            ? prescriptions.map((prescription: any) => `
+                                <div class="prescription-item">
+                                    <div class="prescription-med">${prescription.medication}</div>
+                                    <div class="prescription-details">
+                                        <div class="prescription-detail">
+                                            <strong>Dosage:</strong> ${prescription.dosage}
+                                        </div>
+                                        <div class="prescription-detail">
+                                            <strong>Frequency:</strong> ${prescription.frequency}
+                                        </div>
+                                        <div class="prescription-detail">
+                                            <strong>Duration:</strong> ${prescription.duration}
+                                        </div>
+                                        <div class="prescription-detail">
+                                            <strong>Prescribed:</strong> ${new Date(prescription.created_at).toLocaleDateString()}
+                                        </div>
+                                        <div class="prescription-detail">
+                                            <strong>Doctor:</strong> ${prescription.doctor || 'Dr. Smith'}
+                                        </div>
+                                    </div>
+                                    ${prescription.instructions ? `<div style="margin-top: 7px; padding: 7px; background: #f0f9ff; border-radius: 6px; border-left: 3px solid #06b6d4;"><strong>Instructions:</strong> ${prescription.instructions}</div>` : ''}
+                                </div>
+                            `).join('')
+                            : '<div class="no-data">No prescriptions recorded</div>'
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <div class="footer-content">
+                    <div class="footer-branding">
+                        MedApp Healthcare System
+                    </div>
+                    <div>Professional Medical Records Management</div>
+                    <div class="report-id">Report ID: MR-${Date.now()}</div>
+                    <div>Generated: ${currentDate} at ${currentTime}</div>
+                    <div class="confidential-notice">
+                        🔒 CONFIDENTIAL MEDICAL INFORMATION - Handle with care
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            window.onload = function() {
+                setTimeout(function() {
+                    window.print();
+                }, 1000);
+            }
+        </script>
+    </body>
+    </html>
+    `
   }
 
   const handleDelete = async (id: string) => {
@@ -341,6 +1107,48 @@ export default function PrescriptionsPage() {
       prescription.frequency?.toLowerCase().includes(searchLower)
     )
   })
+
+  // Group prescriptions by patient
+  const groupedPrescriptions = filteredPrescriptions.reduce((acc, prescription) => {
+    const patientKey = `${prescription.patient_id}-${prescription.patients?.name || 'Unknown'}`
+    
+    if (!acc[patientKey]) {
+      acc[patientKey] = {
+        patient: {
+          id: prescription.patient_id,
+          name: prescription.patients?.name || 'Unknown Patient',
+          email: prescription.patients?.email || ''
+        },
+        medications: [],
+        latestDate: prescription.created_at || '',
+        totalMedications: 0
+      }
+    }
+    
+    acc[patientKey].medications.push({
+      id: prescription.id,
+      medication: prescription.medication,
+      dosage: prescription.dosage,
+      frequency: prescription.frequency,
+      duration: prescription.duration,
+      instructions: prescription.instructions,
+      doctor: prescription.doctors?.name || 'Not specified',
+      doctorSpecialization: prescription.doctors?.specialization || '',
+      created_at: prescription.created_at,
+      is_ai_generated: prescription.is_ai_generated || prescription.instructions?.includes("AI Generated")
+    })
+    
+    acc[patientKey].totalMedications = acc[patientKey].medications.length
+    
+    // Keep track of the latest prescription date
+    if (prescription.created_at && prescription.created_at > acc[patientKey].latestDate) {
+      acc[patientKey].latestDate = prescription.created_at
+    }
+    
+    return acc
+  }, {} as Record<string, any>)
+
+  const patientPrescriptionGroups = Object.values(groupedPrescriptions)
 
   const filteredPatients = patients.filter((patient) => {
     const searchLower = searchTerm.toLowerCase()
@@ -460,106 +1268,240 @@ export default function PrescriptionsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPrescriptions.map((prescription) => (
-                <Card key={prescription.id} className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              {patientPrescriptionGroups.map((group) => (
+                <Card key={group.patient.id} className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                   <CardContent className="p-6">
                     {/* Patient Header */}
-                    <div className="flex items-center space-x-3 mb-4 p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white">
-                      <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5" />
+                    <div className="flex items-center justify-between mb-4 p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{group.patient.name}</h3>
+                          <p className="text-blue-100 text-sm">Patient ID: {group.patient.id?.slice(0, 8) || "N/A"}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-lg">{prescription.patients?.name || "Unknown Patient"}</h3>
-                        <p className="text-blue-100 text-sm">Patient ID: {prescription.patient_id?.slice(0, 8) || "N/A"}</p>
+                      <div className="text-center">
+                        <Badge className="bg-white/20 text-white">
+                          {group.totalMedications} medication{group.totalMedications !== 1 ? 's' : ''}
+                        </Badge>
                       </div>
                     </div>
 
-                    {/* Medication Info */}
-                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 mb-4 border border-purple-100">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <Pill className="h-5 w-5 text-purple-600" />
-                          <h4 className="text-lg font-bold text-gray-900">{prescription.medication}</h4>
+                    {/* Medications List */}
+                    <div className="space-y-3 mb-4">
+                      {group.medications.map((medication: any, index: number) => (
+                        <div key={medication.id} className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-purple-100">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <Pill className="h-4 w-4 text-purple-600" />
+                              <h4 className="text-base font-bold text-gray-900">{medication.medication}</h4>
+                            </div>
+                            {medication.is_ai_generated && (
+                              <Badge className="bg-purple-100 text-purple-800 text-xs">
+                                <Brain className="h-3 w-3 mr-1" />
+                                AI
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2 text-sm mb-2">
+                            <div className="bg-gray-50 p-2 rounded">
+                              <span className="font-medium text-gray-600">Dosage:</span>
+                              <p className="text-gray-900 font-semibold text-xs">{medication.dosage}</p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded">
+                              <span className="font-medium text-gray-600">Frequency:</span>
+                              <p className="text-gray-900 font-semibold text-xs">{medication.frequency}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between text-xs text-gray-600">
+                            <div className="flex items-center">
+                              <Stethoscope className="h-3 w-3 mr-1" />
+                              <span>{medication.doctor}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              <span>{medication.duration}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Individual Medication Actions */}
+                          <div className="flex space-x-2 mt-2">
+                            <Button
+                              onClick={() => {
+                                // Find the full prescription object for editing
+                                const fullPrescription = prescriptions.find(p => p.id === medication.id)
+                                if (fullPrescription) {
+                                  handleEdit(fullPrescription)
+                                }
+                              }}
+                              size="sm"
+                              variant="outline"
+                              className="border-blue-300 text-blue-600 hover:bg-blue-50 text-xs px-2 py-1 h-6"
+                            >
+                              ✏️ Edit
+                            </Button>
+                            <Button
+                              onClick={() => handleDelete(medication.id)}
+                              size="sm"
+                              variant="outline"
+                              className="border-red-300 text-red-600 hover:bg-red-50 text-xs px-2 py-1 h-6"
+                            >
+                              🗑️ Delete
+                            </Button>
+                          </div>
+                          
+                          {medication.instructions && (
+                            <div className="bg-yellow-50 p-2 rounded border border-yellow-200 mt-2">
+                              <p className="text-xs text-yellow-800">
+                                <strong>Instructions:</strong> {medication.instructions.substring(0, 60)}
+                                {medication.instructions.length > 60 && "..."}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                        {prescription.instructions?.includes("AI Generated") && (
-                          <Badge className="bg-purple-100 text-purple-800">
-                            <Brain className="h-3 w-3 mr-1" />
-                            AI Generated
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div className="bg-gray-50 p-2 rounded">
-                          <span className="font-medium text-gray-600">Dosage:</span>
-                          <p className="text-gray-900 font-semibold">{prescription.dosage}</p>
-                        </div>
-                        <div className="bg-gray-50 p-2 rounded">
-                          <span className="font-medium text-gray-600">Frequency:</span>
-                          <p className="text-gray-900 font-semibold">{prescription.frequency}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Prescription Details */}
-                    <div className="space-y-2 text-sm mb-4">
-                      <div className="flex items-center text-gray-600">
-                        <Stethoscope className="h-4 w-4 mr-2" />
-                        <span className="font-medium">Doctor:</span>
-                        <span className="ml-1">{prescription.doctors?.name || "Not specified"}</span>
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        <span className="font-medium">Duration:</span>
-                        <span className="ml-1">{prescription.duration}</span>
-                      </div>
-                      {prescription.instructions && (
-                        <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
-                          <p className="text-xs text-yellow-800">
-                            <strong>Instructions:</strong> {prescription.instructions.substring(0, 80)}
-                            {prescription.instructions.length > 80 && "..."}
-                          </p>
-                        </div>
-                      )}
+                      ))}
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-col space-y-2">
-                      <Button
-                        onClick={() => handleViewPatientDetails(prescription.patient_id || "", prescription.patients?.name || "")}
-                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
-                        size="sm"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View All Patient Details
-                      </Button>
-                      
+                    <div className="space-y-2 pt-3 border-t border-gray-200">
+                      {/* Primary Actions Row */}
                       <div className="flex space-x-2">
                         <Button
-                          onClick={() => handleEdit(prescription)}
-                          variant="outline"
+                          onClick={() => {
+                            // Find the first patient details from medications
+                            const firstMedication = group.medications[0]
+                            if (firstMedication) {
+                              // Create a PatientDetails object for compatibility
+                              const patientDetails = patients.find(p => p.id === group.patient.id)
+                              if (patientDetails) {
+                                const enhancedPatient: PatientDetails = {
+                                  ...patientDetails,
+                                  age: calculateAge(patientDetails.date_of_birth),
+                                  gender: patientDetails.gender || "Not specified",
+                                  diagnosis: ["Current medications as prescribed"],
+                                  current_medications: group.medications.map((med: any) => `${med.medication} ${med.dosage}`),
+                                  allergies: patientDetails.allergies || [],
+                                  vital_signs: {
+                                    blood_pressure: patientDetails.vital_signs?.blood_pressure || "N/A",
+                                    heart_rate: patientDetails.vital_signs?.heart_rate ? parseInt(patientDetails.vital_signs.heart_rate) || 0 : 0,
+                                    temperature: patientDetails.vital_signs?.temperature ? parseFloat(patientDetails.vital_signs.temperature) || 0 : 0,
+                                    weight: patientDetails.vital_signs?.weight ? parseFloat(patientDetails.vital_signs.weight) || 0 : 0,
+                                    height: patientDetails.vital_signs?.height ? parseFloat(patientDetails.vital_signs.height) || 0 : 0,
+                                    bmi: patientDetails.vital_signs?.bmi ? parseFloat(patientDetails.vital_signs.bmi) || 0 : 0,
+                                  },
+                                  lab_results: [],
+                                  visit_history: [],
+                                  insurance_info: {
+                                    provider: "Not specified",
+                                    policy_number: "N/A",
+                                    group_number: "N/A",
+                                    coverage_type: "N/A"
+                                  },
+                                  emergency_contact: {
+                                    name: "Not specified",
+                                    relationship: "N/A",
+                                    phone: "N/A"
+                                  }
+                                }
+                                setA4ModalPatient(enhancedPatient)
+                                setShowA4Modal(true)
+                              }
+                            }
+                          }}
                           size="sm"
-                          className="flex-1 border-blue-300 text-blue-600 hover:bg-blue-50"
+                          className="bg-blue-600 hover:bg-blue-700 flex-1"
                         >
-                          ✏️ Edit
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
                         </Button>
                         <Button
-                          onClick={() => handleDelete(prescription.id)}
-                          variant="outline"
+                          onClick={() => {
+                            const patientDetails = patients.find(p => p.id === group.patient.id)
+                            if (patientDetails) {
+                              const enhancedPatient: PatientDetails = {
+                                ...patientDetails,
+                                age: calculateAge(patientDetails.date_of_birth),
+                                gender: patientDetails.gender || "Not specified",
+                                diagnosis: ["Current medications as prescribed"],
+                                current_medications: group.medications.map((med: any) => `${med.medication} ${med.dosage}`),
+                                allergies: patientDetails.allergies || [],
+                                vital_signs: {
+                                  blood_pressure: patientDetails.vital_signs?.blood_pressure || "N/A",
+                                  heart_rate: patientDetails.vital_signs?.heart_rate ? parseInt(patientDetails.vital_signs.heart_rate) || 0 : 0,
+                                  temperature: patientDetails.vital_signs?.temperature ? parseFloat(patientDetails.vital_signs.temperature) || 0 : 0,
+                                  weight: patientDetails.vital_signs?.weight ? parseFloat(patientDetails.vital_signs.weight) || 0 : 0,
+                                  height: patientDetails.vital_signs?.height ? parseFloat(patientDetails.vital_signs.height) || 0 : 0,
+                                  bmi: patientDetails.vital_signs?.bmi ? parseFloat(patientDetails.vital_signs.bmi) || 0 : 0,
+                                },
+                                lab_results: [],
+                                visit_history: [],
+                                insurance_info: {
+                                  provider: "Not specified",
+                                  policy_number: "N/A",
+                                  group_number: "N/A",
+                                  coverage_type: "N/A"
+                                },
+                                emergency_contact: {
+                                  name: "Not specified",
+                                  relationship: "N/A",
+                                  phone: "N/A"
+                                }
+                              }
+                              setSelectedPatient(enhancedPatient)
+                              setShowAIPrescription(true)
+                            }
+                          }}
                           size="sm"
-                          className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                          variant="outline"
+                          className="border-purple-200 text-purple-700 hover:bg-purple-50 flex-1"
                         >
-                          🗑️ Delete
+                          <Brain className="h-4 w-4 mr-2" />
+                          AI Rx
+                        </Button>
+                      </div>
+                      {/* Secondary Actions Row */}
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => {
+                            // Add new medication to this patient using the new form
+                            setSelectedPatientForForm(group.patient.id)
+                            setShowForm(true)
+                          }}
+                          size="sm"
+                          variant="outline"
+                          className="border-green-300 text-green-600 hover:bg-green-50 flex-1 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Medication
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            // Delete all medications for this patient (with confirmation)
+                            if (confirm(`Are you sure you want to delete all ${group.totalMedications} medications for ${group.patient.name}? This action cannot be undone.`)) {
+                              group.medications.forEach((med: any) => {
+                                handleDelete(med.id) // Delete each medication
+                              })
+                            }
+                          }}
+                          size="sm"
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50 flex-1 text-xs"
+                        >
+                          <FileText className="h-3 w-3 mr-1" />
+                          Delete All
                         </Button>
                       </div>
                     </div>
 
-                    {/* Date Footer */}
-                    <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
-                      <span>📅 {formatDate(prescription.created_at || new Date())}</span>
-                      <Badge variant="outline" className="text-xs">
-                        Prescription #{prescription.id.slice(0, 6)}
-                      </Badge>
+                    {/* Last Updated */}
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <p className="text-xs text-gray-500 text-center">
+                        Last updated: {group.latestDate ? formatDate(group.latestDate) : 'N/A'}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -627,9 +1569,11 @@ export default function PrescriptionsPage() {
       {showForm && (
         <PrescriptionForm
           prescription={editingPrescription}
+          selectedPatientId={selectedPatientForForm}
           onClose={() => {
             setShowForm(false)
             setEditingPrescription(null)
+            setSelectedPatientForForm("")
           }}
           onSuccess={(prescription) => {
             if (editingPrescription) {
@@ -638,6 +1582,7 @@ export default function PrescriptionsPage() {
               setShowForm(false)
               fetchPrescriptions()
             }
+            setSelectedPatientForForm("")
           }}
         />
       )}
@@ -646,30 +1591,7 @@ export default function PrescriptionsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 pt-20">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[85vh] overflow-y-auto mt-8">
             <PatientDetailsViewer patient={selectedPatient} onGeneratePrescription={handleGeneratePrescription} />
-            <div className="p-4 border-t flex justify-between items-center">
-              <Button
-                onClick={async () => {
-                  try {
-                    // Generate PDF using Gemini AI
-                    const pdfData = await generatePrescriptionPDF(selectedPatient)
-                    // Download the PDF
-                    const blob = new Blob([pdfData], { type: "application/pdf" })
-                    const url = window.URL.createObjectURL(blob)
-                    const a = document.createElement("a")
-                    a.href = url
-                    a.download = `${selectedPatient.name}_prescription.pdf`
-                    a.click()
-                    window.URL.revokeObjectURL(url)
-                  } catch (error) {
-                    console.error("Error generating PDF:", error)
-                    alert("Failed to generate PDF. Please try again.")
-                  }
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Generate PDF Prescription
-              </Button>
+            <div className="p-4 border-t flex justify-end items-center">
               <Button
                 variant="outline"
                 onClick={() => {

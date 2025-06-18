@@ -359,4 +359,168 @@ export const apiService = {
       throw error;
     }
   },
+
+  // Grouped Prescription Methods
+  async getPrescriptionGroups() {
+    try {
+      console.log("Fetching prescription groups from Supabase...")
+      
+      const { data, error } = await supabase.rpc('get_all_prescription_groups')
+
+      if (error) {
+        console.error("Error fetching prescription groups:", error)
+        throw error
+      }
+
+      console.log("Prescription groups fetched successfully:", data?.length || 0, "groups")
+      return { data: data || [] }
+    } catch (error: any) {
+      console.error("Error in getPrescriptionGroups:", error)
+      throw error
+    }
+  },
+
+  async getPatientPrescriptionGroups(patientId: string) {
+    try {
+      console.log("Fetching prescription groups for patient:", patientId)
+      
+      const { data, error } = await supabase.rpc('get_patient_prescription_groups', {
+        patient_uuid: patientId
+      })
+
+      if (error) {
+        console.error("Error fetching patient prescription groups:", error)
+        throw error
+      }
+
+      console.log("Patient prescription groups fetched successfully:", data?.length || 0, "groups")
+      return { data: data || [] }
+    } catch (error: any) {
+      console.error("Error in getPatientPrescriptionGroups:", error)
+      throw error
+    }
+  },
+
+  async createPrescriptionGroup(groupData: {
+    patient_id: string
+    doctor_id: string
+    visit_reason?: string
+    diagnosis?: string[]
+    symptoms?: string[]
+    treatment_plan?: string
+    follow_up_date?: string
+    notes?: string
+    medications: Array<{
+      medication: string
+      dosage: string
+      frequency: string
+      duration: string
+      instructions?: string
+    }>
+  }) {
+    try {
+      console.log("Creating prescription group:", groupData)
+
+      // First create the prescription group
+      const { data: groupResult, error: groupError } = await supabase
+        .from("prescription_groups")
+        .insert([{
+          patient_id: groupData.patient_id,
+          doctor_id: groupData.doctor_id,
+          visit_reason: groupData.visit_reason || "Medical consultation",
+          diagnosis: groupData.diagnosis || [],
+          symptoms: groupData.symptoms || [],
+          treatment_plan: groupData.treatment_plan || "",
+          follow_up_date: groupData.follow_up_date || null,
+          notes: groupData.notes || "",
+          status: "active"
+        }])
+        .select()
+        .single()
+
+      if (groupError) {
+        console.error("Error creating prescription group:", groupError)
+        throw groupError
+      }
+
+      const groupId = groupResult.id
+
+      // Then create all the medications for this group
+      if (groupData.medications && groupData.medications.length > 0) {
+        const medicationsWithGroupId = groupData.medications.map(med => ({
+          ...med,
+          patient_id: groupData.patient_id,
+          doctor_id: groupData.doctor_id,
+          prescription_group_id: groupId,
+          status: "active"
+        }))
+
+        const { data: medicationsResult, error: medicationsError } = await supabase
+          .from("prescriptions")
+          .insert(medicationsWithGroupId)
+          .select()
+
+        if (medicationsError) {
+          console.error("Error creating medications:", medicationsError)
+          // Try to clean up the group if medications failed
+          await supabase.from("prescription_groups").delete().eq("id", groupId)
+          throw medicationsError
+        }
+
+        console.log("Prescription group created successfully with", medicationsResult.length, "medications")
+      }
+
+      return { data: groupResult }
+    } catch (error: any) {
+      console.error("Error in createPrescriptionGroup:", error)
+      throw error
+    }
+  },
+
+  async updatePrescriptionGroup(groupId: string, updates: any) {
+    try {
+      console.log("Updating prescription group:", groupId, updates)
+
+      const { data, error } = await supabase
+        .from("prescription_groups")
+        .update(updates)
+        .eq("id", groupId)
+        .select()
+        .single()
+
+      if (error) {
+        console.error("Error updating prescription group:", error)
+        throw error
+      }
+
+      console.log("Prescription group updated successfully")
+      return { data }
+    } catch (error: any) {
+      console.error("Error in updatePrescriptionGroup:", error)
+      throw error
+    }
+  },
+
+  async deletePrescriptionGroup(groupId: string) {
+    try {
+      console.log("Deleting prescription group:", groupId)
+
+      // This will cascade delete all associated prescriptions
+      const { error } = await supabase
+        .from("prescription_groups")
+        .delete()
+        .eq("id", groupId)
+
+      if (error) {
+        console.error("Error deleting prescription group:", error)
+        throw error
+      }
+
+      console.log("Prescription group deleted successfully")
+      return { success: true }
+    } catch (error: any) {
+      console.error("Error in deletePrescriptionGroup:", error)
+      throw error
+    }
+  },
 }
