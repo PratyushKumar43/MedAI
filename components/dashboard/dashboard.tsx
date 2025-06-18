@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { StatsCard } from "./stats-card"
 import { RecentActivity } from "./recent-activity"
+import { MCPStatus } from "@/components/mcp/mcp-status"
 import { Users, UserCheck, FileText, Activity } from "lucide-react"
 import { apiService } from "@/lib/api"
 
@@ -112,8 +113,9 @@ export function Dashboard() {
         <StatsCard title="Active Today" value={stats.activeToday} icon={Activity} color="orange" loading={loading} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <RecentActivity />
+        <MCPStatus />
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">

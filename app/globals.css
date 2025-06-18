@@ -83,6 +83,11 @@
   .animate-stagger-5 {
     animation-delay: 0.5s;
   }
+  
+  .animate-gradient {
+    animation: gradientShift 15s ease infinite;
+    background-size: 400% 400%;
+  }
 
   .bg-grid-pattern {
     background-image: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
@@ -91,10 +96,11 @@
   }
 
   .glass-morphism {
-    background: rgba(255, 255, 255, 0.25);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
   }
 
   .glass-morphism-dark {
@@ -239,4 +245,16 @@
 /* Smooth scrolling for all elements */
 * {
   scroll-behavior: smooth;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

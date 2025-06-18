@@ -8,6 +8,7 @@ export default function DoctorsPage() {
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [currentDate, setCurrentDate] = useState<Date | null>(null)
 
   useEffect(() => {
     // Ensure page starts at top
@@ -16,6 +17,8 @@ export default function DoctorsPage() {
       mainContent.scrollTo(0, 0)
     }
 
+    // Initialize date on client side
+    setCurrentDate(new Date())
     fetchDoctors()
   }, [])
 
@@ -78,7 +81,7 @@ export default function DoctorsPage() {
                   <div className="glass-morphism px-4 py-2 rounded-lg text-blue-800 shadow-lg">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      <span className="text-sm font-medium">Today: {new Date().toLocaleDateString()}</span>
+                      <span className="text-sm font-medium">Today: {currentDate ? currentDate.toLocaleDateString() : "--/--/----"}</span>
                     </div>
                   </div>
                 </div>

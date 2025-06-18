@@ -2,6 +2,15 @@
 import { genericAIService } from "./generic-ai"
 import { apiService } from "./api"
 
+// Event system for real-time updates
+type MCPEventType = 'session_started' | 'symptom_added' | 'diagnosis_set' | 'prescription_generated' | 'session_ended'
+
+interface MCPEvent {
+  type: MCPEventType
+  payload: any
+  timestamp: string
+}
+
 export interface MCPContext {
   patient: any
   symptoms: string[]
@@ -12,9 +21,15 @@ export interface MCPContext {
     start_time: string
     notes: string[]
     decisions: string[]
+    events: MCPEvent[]
   }
   clinical_guidelines: any[]
   drug_database: any[]
+  session_metadata: {
+    version: string
+    created_at: string
+    last_updated: string
+  }
 }
 
 export interface AIPrescriptionResponse {
@@ -31,6 +46,42 @@ export interface AIPrescriptionResponse {
 export class MCPServer {
   private context: MCPContext | null = null
   private sessionActive = false
+  private eventListeners: { [key in MCPEventType]?: Array<(payload: any) => void> } = {}
+
+  // Event management
+  private emitEvent(type: MCPEventType, payload: any) {
+    const event: MCPEvent = {
+      type,
+      payload,
+      timestamp: new Date().toISOString()
+    }
+    
+    // Add to session events if context exists
+    if (this.context) {
+      this.context.current_session.events.push(event)
+      this.context.session_metadata.last_updated = new Date().toISOString()
+    }
+    
+    // Notify listeners
+    this.eventListeners[type]?.forEach(listener => listener(payload))
+    
+    console.log(`🔔 MCP Event: ${type}`, payload)
+  }
+
+  // Add event listener
+  on(event: MCPEventType, listener: (payload: any) => void) {
+    if (!this.eventListeners[event]) {
+      this.eventListeners[event] = []
+    }
+    this.eventListeners[event]!.push(listener)
+  }
+
+  // Remove event listener
+  off(event: MCPEventType, listener: (payload: any) => void) {
+    if (this.eventListeners[event]) {
+      this.eventListeners[event] = this.eventListeners[event]!.filter(l => l !== listener)
+    }
+  }
 
   // Initialize MCP session with patient context
   async initializeSession(patientId: string, doctorId: string): Promise<MCPContext> {
@@ -52,12 +103,20 @@ export class MCPServer {
           start_time: new Date().toISOString(),
           notes: [],
           decisions: [],
+          events: [],
         },
         clinical_guidelines: await this.loadClinicalGuidelines(),
         drug_database: await this.loadDrugDatabase(),
+        session_metadata: {
+          version: "1.2.0",
+          created_at: new Date().toISOString(),
+          last_updated: new Date().toISOString(),
+        }
       }
 
       this.sessionActive = true
+      this.emitEvent('session_started', { patientId, doctorId })
+      
       console.log("✅ MCP Session initialized successfully")
       return this.context
     } catch (error) {
@@ -72,6 +131,9 @@ export class MCPServer {
 
     this.context.symptoms = [...this.context.symptoms, ...symptoms]
     this.context.current_session.notes.push(`Symptoms added: ${symptoms.join(", ")}`)
+    
+    this.emitEvent('symptom_added', { symptoms, total_symptoms: this.context.symptoms.length })
+    
     console.log("📝 MCP: Symptoms added to context:", symptoms)
   }
 
@@ -90,6 +152,8 @@ export class MCPServer {
 
       this.context.diagnosis = diagnosis
       this.context.current_session.decisions.push(`Diagnosis set: ${diagnosis}`)
+      
+      this.emitEvent('diagnosis_set', { diagnosis, confidence: 85 })
 
       console.log("🎯 MCP: Diagnosis validated and set:", diagnosis)
 
@@ -134,6 +198,11 @@ export class MCPServer {
       const enhancedResponse = await this.enhanceWithMCPIntelligence(aiResponse)
 
       this.context.current_session.decisions.push("AI prescription generated")
+      
+      this.emitEvent('prescription_generated', { 
+        medication_count: enhancedResponse.medications.length,
+        confidence_score: enhancedResponse.confidence_score 
+      })
 
       console.log("✅ MCP: Enhanced prescription generated successfully")
       return enhancedResponse

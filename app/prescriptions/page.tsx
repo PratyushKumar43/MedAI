@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { User, Plus, Search, Brain, Stethoscope, FileText } from "lucide-react"
+import { User, Plus, Search, Brain, Stethoscope, FileText, Eye, Download, Calendar, Pill, Heart, Activity } from "lucide-react"
 import { apiService, supabase } from "@/lib/api"
 import type { Prescription } from "@/types/prescription"
 import type { Patient } from "@/types/patient"
@@ -47,9 +47,15 @@ export default function PrescriptionsPage() {
   const [selectedPatient, setSelectedPatient] = useState<PatientDetails | null>(null)
   const [showPatientDetails, setShowPatientDetails] = useState(false)
   const [showAIPrescription, setShowAIPrescription] = useState(false)
+  const [showA4Modal, setShowA4Modal] = useState(false)
+  const [a4ModalPatient, setA4ModalPatient] = useState<PatientDetails | null>(null)
   const [currentView, setCurrentView] = useState<"prescriptions" | "patients" | "ai-workflow">("prescriptions")
+  const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null)
+  const [currentDate, setCurrentDate] = useState<Date | null>(null)
 
   useEffect(() => {
+    // Initialize date on client side to avoid hydration mismatch
+    setCurrentDate(new Date())
     fetchData()
 
     // Set up real-time subscription for prescriptions
@@ -171,12 +177,127 @@ export default function PrescriptionsPage() {
     }
   }
 
+  const handleViewPatientDetails = async (patientId: string, patientName: string) => {
+    try {
+      // Find patient in existing data or fetch from API
+      let patient = patients.find(p => p.id === patientId)
+      
+      if (!patient) {
+        // If not found in local data, try to fetch from API
+        const response = await apiService.getPatient(patientId)
+        patient = response.data
+      }
+
+      if (patient) {
+        // Convert Patient to PatientDetails with enhanced data
+        const enhancedPatient: PatientDetails = {
+          ...patient,
+          age: calculateAge(patient.date_of_birth),
+          gender: patient.gender || "Not specified",
+          diagnosis: ["Hypertension", "Type 2 Diabetes", "Hyperlipidemia"],
+          current_medications: ["Lisinopril 10mg daily", "Metformin 500mg twice daily", "Atorvastatin 20mg daily"],
+          allergies: ["Penicillin", "Shellfish", "Latex"],
+          vital_signs: {
+            blood_pressure: "140/90 mmHg",
+            heart_rate: 78,
+            temperature: 98.6,
+            weight: 180,
+            height: 70,
+            bmi: 25.8,
+          },
+          lab_results: [
+            { test_name: "HbA1c", value: "7.2%", normal_range: "<7%", date: "2024-01-15", status: "abnormal" },
+            { test_name: "Total Cholesterol", value: "220 mg/dL", normal_range: "<200 mg/dL", date: "2024-01-15", status: "abnormal" },
+            { test_name: "Creatinine", value: "1.1 mg/dL", normal_range: "0.6-1.2 mg/dL", date: "2024-01-15", status: "normal" },
+          ],
+          visit_history: [
+            {
+              date: "2024-01-15",
+              reason: "Routine Follow-up",
+              diagnosis: "Diabetes Management",
+              treatment: "Medication adjustment, lifestyle counseling",
+              doctor: "Dr. Sarah Smith",
+            },
+            {
+              date: "2023-12-10",
+              reason: "Annual Physical Exam",
+              diagnosis: "Hypertension, Diabetes",
+              treatment: "Blood pressure monitoring, diet modification",
+              doctor: "Dr. Michael Johnson",
+            },
+          ],
+          insurance_info: {
+            provider: "Blue Cross Blue Shield",
+            policy_number: "BC123456789",
+            group_number: "GRP001",
+            coverage_type: "PPO",
+          },
+          emergency_contact: {
+            name: "Jane Doe",
+            relationship: "Spouse",
+            phone: "(555) 123-4567",
+          },
+          medical_history: "Patient has a 10-year history of Type 2 diabetes and hypertension. Recently diagnosed with hyperlipidemia. Family history of cardiovascular disease.",
+        }
+
+        setA4ModalPatient(enhancedPatient)
+        setShowA4Modal(true)
+      }
+    } catch (error) {
+      console.error("Error fetching patient details:", error)
+      alert("Failed to load patient details. Please try again.")
+    }
+  }
+
   const handleSavePrescription = (prescription: any) => {
     console.log("Prescription saved:", prescription)
     fetchPrescriptions()
     setShowAIPrescription(false)
     setCurrentView("prescriptions")
     setSelectedPatient(null)
+  }
+
+  const handleDownloadPatientData = (patient: PatientDetails) => {
+    // Get prescriptions for this patient
+    const patientPrescriptions = prescriptions.filter(p => p.patients?.name === patient.name)
+    
+    const patientData = {
+      personalInfo: {
+        id: patient.id,
+        name: patient.name,
+        age: patient.age,
+        dateOfBirth: patient.date_of_birth,
+        email: patient.email,
+        phone: patient.phone,
+        address: patient.address,
+        gender: patient.gender || "Not specified",
+      },
+      medicalInfo: {
+        diagnosis: patient.diagnosis,
+        allergies: patient.allergies,
+        medicalHistory: patient.medical_history,
+        currentMedications: patient.current_medications,
+        vitalSigns: patient.vital_signs,
+      },
+      labResults: patient.lab_results,
+      visitHistory: patient.visit_history,
+      insuranceInfo: patient.insurance_info,
+      emergencyContact: patient.emergency_contact,
+      prescriptions: patientPrescriptions,
+      downloadDate: new Date().toISOString(),
+    }
+
+    const dataStr = JSON.stringify(patientData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: "application/json" })
+    const url = URL.createObjectURL(dataBlob)
+
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${patient.name.replace(/\s+/g, "_")}_complete_medical_records.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   const handleDelete = async (id: string) => {
@@ -188,6 +309,25 @@ export default function PrescriptionsPage() {
     } catch (error: any) {
       console.error("Error deleting prescription:", error)
       alert(`Failed to delete prescription: ${error.message || "Unknown error"}`)
+    }
+  }
+
+  const handleEdit = (prescription: Prescription) => {
+    setEditingPrescription(prescription)
+    setShowForm(true)
+  }
+
+  const handleUpdatePrescription = async (updatedPrescription: any) => {
+    try {
+      if (editingPrescription) {
+        await apiService.updatePrescription(editingPrescription.id, updatedPrescription)
+        fetchPrescriptions()
+        setShowForm(false)
+        setEditingPrescription(null)
+      }
+    } catch (error: any) {
+      console.error("Error updating prescription:", error)
+      alert(`Failed to update prescription: ${error.message || "Unknown error"}`)
     }
   }
 
@@ -321,57 +461,108 @@ export default function PrescriptionsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredPrescriptions.map((prescription) => (
-                <div key={prescription.id} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{prescription.medication}</h3>
-                      <p className="text-sm text-gray-600">{prescription.dosage}</p>
+                <Card key={prescription.id} className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                  <CardContent className="p-6">
+                    {/* Patient Header */}
+                    <div className="flex items-center space-x-3 mb-4 p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white">
+                      <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">{prescription.patients?.name || "Unknown Patient"}</h3>
+                        <p className="text-blue-100 text-sm">Patient ID: {prescription.patient_id?.slice(0, 8) || "N/A"}</p>
+                      </div>
                     </div>
-                    {prescription.instructions?.includes("AI Generated") && (
-                      <Badge className="bg-purple-100 text-purple-800">
-                        <Brain className="h-3 w-3 mr-1" />
-                        AI Generated
-                      </Badge>
-                    )}
-                  </div>
 
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <p>
-                      <strong>Patient:</strong> {prescription.patients?.name}
-                    </p>
-                    <p>
-                      <strong>Doctor:</strong> {prescription.doctors?.name}
-                    </p>
-                    <p>
-                      <strong>Frequency:</strong> {prescription.frequency}
-                    </p>
-                    <p>
-                      <strong>Duration:</strong> {prescription.duration}
-                    </p>
-                    {prescription.instructions && (
-                      <p>
-                        <strong>Instructions:</strong> {prescription.instructions.substring(0, 100)}...
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-center text-sm text-gray-500">
-                      📅 {formatDate(prescription.created_at || new Date())}
+                    {/* Medication Info */}
+                    <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 mb-4 border border-purple-100">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <Pill className="h-5 w-5 text-purple-600" />
+                          <h4 className="text-lg font-bold text-gray-900">{prescription.medication}</h4>
+                        </div>
+                        {prescription.instructions?.includes("AI Generated") && (
+                          <Badge className="bg-purple-100 text-purple-800">
+                            <Brain className="h-3 w-3 mr-1" />
+                            AI Generated
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-gray-50 p-2 rounded">
+                          <span className="font-medium text-gray-600">Dosage:</span>
+                          <p className="text-gray-900 font-semibold">{prescription.dosage}</p>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <span className="font-medium text-gray-600">Frequency:</span>
+                          <p className="text-gray-900 font-semibold">{prescription.frequency}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex space-x-2">
-                      <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                        ✏️ Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(prescription.id)}
-                        className="px-3 py-1 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50"
+
+                    {/* Prescription Details */}
+                    <div className="space-y-2 text-sm mb-4">
+                      <div className="flex items-center text-gray-600">
+                        <Stethoscope className="h-4 w-4 mr-2" />
+                        <span className="font-medium">Doctor:</span>
+                        <span className="ml-1">{prescription.doctors?.name || "Not specified"}</span>
+                      </div>
+                      <div className="flex items-center text-gray-600">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        <span className="font-medium">Duration:</span>
+                        <span className="ml-1">{prescription.duration}</span>
+                      </div>
+                      {prescription.instructions && (
+                        <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+                          <p className="text-xs text-yellow-800">
+                            <strong>Instructions:</strong> {prescription.instructions.substring(0, 80)}
+                            {prescription.instructions.length > 80 && "..."}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col space-y-2">
+                      <Button
+                        onClick={() => handleViewPatientDetails(prescription.patient_id || "", prescription.patients?.name || "")}
+                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
+                        size="sm"
                       >
-                        🗑️ Delete
-                      </button>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View All Patient Details
+                      </Button>
+                      
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => handleEdit(prescription)}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 border-blue-300 text-blue-600 hover:bg-blue-50"
+                        >
+                          ✏️ Edit
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(prescription.id)}
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                        >
+                          🗑️ Delete
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </div>
+
+                    {/* Date Footer */}
+                    <div className="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
+                      <span>📅 {formatDate(prescription.created_at || new Date())}</span>
+                      <Badge variant="outline" className="text-xs">
+                        Prescription #{prescription.id.slice(0, 6)}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
@@ -435,10 +626,18 @@ export default function PrescriptionsPage() {
       {/* Modals */}
       {showForm && (
         <PrescriptionForm
-          onClose={() => setShowForm(false)}
-          onSuccess={() => {
+          prescription={editingPrescription}
+          onClose={() => {
             setShowForm(false)
-            fetchPrescriptions()
+            setEditingPrescription(null)
+          }}
+          onSuccess={(prescription) => {
+            if (editingPrescription) {
+              handleUpdatePrescription(prescription)
+            } else {
+              setShowForm(false)
+              fetchPrescriptions()
+            }
           }}
         />
       )}
@@ -494,6 +693,241 @@ export default function PrescriptionsPage() {
           }}
           onSavePrescription={handleSavePrescription}
         />
+      )}
+
+      {/* A4 Patient Details Modal */}
+      {showA4Modal && a4ModalPatient && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-[210mm] h-[297mm] max-w-full max-h-full overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold">Complete Patient Medical Record</h2>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => handleDownloadPatientData(a4ModalPatient)}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+                <Button
+                  onClick={() => setShowA4Modal(false)}
+                  variant="outline"
+                  size="sm"
+                  className="bg-white text-blue-600 hover:bg-gray-100"
+                >
+                  ✕ Close
+                </Button>
+              </div>
+            </div>
+
+            {/* A4 Content Area */}
+            <div className="flex-1 overflow-y-auto p-6 bg-white">
+              {/* Patient Header */}
+              <div className="border-b-2 border-blue-200 pb-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
+                      <User className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900">{a4ModalPatient.name}</h1>
+                      <p className="text-gray-600">Patient ID: {a4ModalPatient.id}</p>
+                      <p className="text-gray-600">Age: {a4ModalPatient.age} years • {a4ModalPatient.gender}</p>
+                    </div>
+                  </div>
+                  <div className="text-right text-sm text-gray-600">
+                    <p>Generated: {currentDate ? currentDate.toLocaleDateString() : "--/--/----"}</p>
+                    <p>Report #: MR-{currentDate ? currentDate.getTime().toString().slice(-6) : "------"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact & Insurance Info */}
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <User className="h-4 w-4 mr-2" />
+                    Contact Information
+                  </h3>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-medium">Email:</span> {a4ModalPatient.email}</p>
+                    <p><span className="font-medium">Phone:</span> {a4ModalPatient.phone}</p>
+                    <p><span className="font-medium">DOB:</span> {formatDate(a4ModalPatient.date_of_birth)}</p>
+                    <p><span className="font-medium">Address:</span> {a4ModalPatient.address}</p>
+                  </div>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Insurance Information
+                  </h3>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-medium">Provider:</span> {a4ModalPatient.insurance_info.provider}</p>
+                    <p><span className="font-medium">Policy:</span> {a4ModalPatient.insurance_info.policy_number}</p>
+                    <p><span className="font-medium">Group:</span> {a4ModalPatient.insurance_info.group_number}</p>
+                    <p><span className="font-medium">Type:</span> {a4ModalPatient.insurance_info.coverage_type}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vital Signs */}
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center border-b border-gray-200 pb-2">
+                  <Heart className="h-5 w-5 mr-2 text-red-600" />
+                  Current Vital Signs
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  {Object.entries(a4ModalPatient.vital_signs).map(([key, value]) => (
+                    <div key={key} className="bg-red-50 p-3 rounded-lg text-center">
+                      <p className="text-xs font-medium text-gray-600 capitalize">{key.replace('_', ' ')}</p>
+                      <p className="text-lg font-bold text-red-600">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Diagnoses & Medications */}
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center border-b border-gray-200 pb-2">
+                    <Stethoscope className="h-5 w-5 mr-2 text-blue-600" />
+                    Current Diagnoses
+                  </h3>
+                  <div className="space-y-2">
+                    {a4ModalPatient.diagnosis.map((diagnosis, index) => (
+                      <div key={index} className="bg-blue-50 p-2 rounded text-sm">
+                        {diagnosis}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center border-b border-gray-200 pb-2">
+                    <Pill className="h-5 w-5 mr-2 text-purple-600" />
+                    Current Medications
+                  </h3>
+                  <div className="space-y-2">
+                    {a4ModalPatient.current_medications.map((medication, index) => (
+                      <div key={index} className="bg-purple-50 p-2 rounded text-sm">
+                        {medication}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Prescriptions */}
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center border-b border-gray-200 pb-2">
+                  <FileText className="h-5 w-5 mr-2 text-green-600" />
+                  Recent Prescriptions
+                </h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {prescriptions
+                    .filter(p => p.patients?.name === a4ModalPatient.name)
+                    .slice(0, 4)
+                    .map((prescription, index) => (
+                      <div key={index} className="bg-green-50 p-3 rounded-lg border border-green-200">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-green-900">{prescription.medication}</p>
+                            <p className="text-sm text-green-700">{prescription.dosage}, {prescription.frequency}</p>
+                            <p className="text-xs text-green-600">{prescription.instructions?.substring(0, 60)}...</p>
+                          </div>
+                          <div className="text-right text-xs text-green-600">
+                            <p>{formatDate(prescription.created_at || new Date())}</p>
+                            <p>{prescription.doctors?.name}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Lab Results */}
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center border-b border-gray-200 pb-2">
+                  <Activity className="h-5 w-5 mr-2 text-orange-600" />
+                  Recent Lab Results
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="text-left p-2">Test</th>
+                        <th className="text-left p-2">Value</th>
+                        <th className="text-left p-2">Normal Range</th>
+                        <th className="text-left p-2">Status</th>
+                        <th className="text-left p-2">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {a4ModalPatient.lab_results.map((result, index) => (
+                        <tr key={index} className="border-b">
+                          <td className="p-2 font-medium">{result.test_name}</td>
+                          <td className="p-2">{result.value}</td>
+                          <td className="p-2 text-gray-600">{result.normal_range}</td>
+                          <td className="p-2">
+                            <Badge 
+                              className={
+                                result.status === "normal" 
+                                  ? "bg-green-100 text-green-800" 
+                                  : "bg-yellow-100 text-yellow-800"
+                              }
+                            >
+                              {result.status.toUpperCase()}
+                            </Badge>
+                          </td>
+                          <td className="p-2">{formatDate(result.date)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Allergies & Emergency Contact */}
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                  <h3 className="font-semibold text-red-900 mb-2">⚠️ Allergies</h3>
+                  <div className="space-y-1">
+                    {a4ModalPatient.allergies.map((allergy, index) => (
+                      <div key={index} className="bg-red-100 p-2 rounded text-sm text-red-800">
+                        {allergy}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h3 className="font-semibold text-green-900 mb-2">📞 Emergency Contact</h3>
+                  <div className="text-sm space-y-1">
+                    <p><span className="font-medium">Name:</span> {a4ModalPatient.emergency_contact.name}</p>
+                    <p><span className="font-medium">Relationship:</span> {a4ModalPatient.emergency_contact.relationship}</p>
+                    <p><span className="font-medium">Phone:</span> {a4ModalPatient.emergency_contact.phone}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Medical History */}
+              <div className="mb-4">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center border-b border-gray-200 pb-2">
+                  📋 Medical History Summary
+                </h3>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-700 leading-relaxed">{a4ModalPatient.medical_history}</p>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="text-center text-xs text-gray-500 border-t border-gray-200 pt-4">
+                <p>This is a comprehensive medical record generated on {currentDate ? currentDate.toLocaleDateString() : "--/--/----"} at {currentDate ? currentDate.toLocaleTimeString() : "--:--:--"}</p>
+                <p>For medical use only • Confidential Patient Information</p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -16,6 +16,7 @@ import {
   TrendingUp,
   MapPin,
   Loader2,
+  Download,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import type { PatientDetails } from "@/types/patient-details"
 import { formatDate } from "@/lib/utils"
 import { apiService } from "@/lib/api"
+import { MCPDashboard } from "@/components/mcp/mcp-dashboard"
 
 interface PatientDetailsViewerProps {
   patientId?: string
@@ -39,12 +41,20 @@ export function PatientDetailsViewer({
   const [loading, setLoading] = useState(!initialPatient && !!patientId)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("overview")
+  const [prescriptions, setPrescriptions] = useState<any[]>([])
+  const [loadingPrescriptions, setLoadingPrescriptions] = useState(false)
 
   useEffect(() => {
     if (!initialPatient && patientId) {
       fetchPatientDetails()
     }
   }, [patientId, initialPatient])
+
+  useEffect(() => {
+    if (patient) {
+      fetchPatientPrescriptions()
+    }
+  }, [patient])
 
   const fetchPatientDetails = async () => {
     if (!patientId) return
@@ -140,6 +150,54 @@ export function PatientDetailsViewer({
     }
   }
 
+  const fetchPatientPrescriptions = async () => {
+    if (!patient?.id) return
+
+    try {
+      setLoadingPrescriptions(true)
+      // In a real application, you would fetch prescriptions from the API
+      // For demo purposes, we'll use mock data
+      const mockPrescriptions = [
+        {
+          id: "presc-001",
+          medication: "Lisinopril",
+          dosage: "10mg",
+          frequency: "once daily",
+          duration: "30 days",
+          instructions: "Take in the morning with food",
+          created_at: "2024-01-20",
+          doctor: "Dr. Sarah Smith",
+        },
+        {
+          id: "presc-002",
+          medication: "Metformin",
+          dosage: "500mg",
+          frequency: "twice daily",
+          duration: "90 days",
+          instructions: "Take with meals morning and evening",
+          created_at: "2024-01-15",
+          doctor: "Dr. Michael Johnson",
+        },
+        {
+          id: "presc-003",
+          medication: "Atorvastatin",
+          dosage: "20mg",
+          frequency: "once daily",
+          duration: "30 days",
+          instructions: "Take in the evening",
+          created_at: "2024-01-10",
+          doctor: "Dr. Sarah Smith",
+        },
+      ]
+
+      setPrescriptions(mockPrescriptions)
+    } catch (error) {
+      console.error("Error fetching prescriptions:", error)
+    } finally {
+      setLoadingPrescriptions(false)
+    }
+  }
+
   const calculateAge = (dateOfBirth: string): number => {
     const today = new Date()
     const birthDate = new Date(dateOfBirth)
@@ -149,6 +207,53 @@ export function PatientDetailsViewer({
       age--
     }
     return age
+  }
+
+  const downloadPatientData = () => {
+    if (!patient) return
+
+    // Create a comprehensive patient data object for download
+    const patientData = {
+      personalInfo: {
+        id: patient.id,
+        name: patient.name,
+        age: patient.age,
+        dateOfBirth: patient.date_of_birth,
+        email: patient.email,
+        phone: patient.phone,
+        address: patient.address,
+        gender: patient.gender || "Not specified",
+      },
+      medicalInfo: {
+        diagnosis: patient.diagnosis,
+        allergies: patient.allergies,
+        medicalHistory: patient.medical_history,
+        currentMedications: patient.current_medications,
+        vitalSigns: patient.vital_signs,
+      },
+      labResults: patient.lab_results,
+      visitHistory: patient.visit_history,
+      insuranceInfo: patient.insurance_info,
+      emergencyContact: patient.emergency_contact,
+      prescriptions: prescriptions,
+      downloadDate: new Date().toISOString(),
+    }
+
+    // Convert to JSON and create a downloadable file
+    const dataStr = JSON.stringify(patientData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: "application/json" })
+    const url = URL.createObjectURL(dataBlob)
+
+    // Create download link and trigger download
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${patient.name.replace(/\s+/g, "_")}_medical_records.json`
+    document.body.appendChild(a)
+    a.click()
+
+    // Clean up
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   const getBMIStatus = (bmi: number) => {
@@ -239,7 +344,7 @@ export function PatientDetailsViewer({
               </div>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-right flex flex-col items-end space-y-3">
             <Button
               onClick={() => onGeneratePrescription(patient)}
               size="lg"
@@ -248,7 +353,14 @@ export function PatientDetailsViewer({
               <Brain className="h-5 w-5 mr-2" />
               Generate AI Prescription
             </Button>
-            <p className="text-blue-100 text-sm mt-2">Powered by Advanced AI</p>
+            <Button
+              onClick={downloadPatientData}
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 text-lg shadow-lg border-2 border-green-500"
+            >
+              <Download className="h-5 w-5 mr-2" />
+              Download Complete Records
+            </Button>
           </div>
         </div>
       </div>
@@ -310,10 +422,10 @@ export function PatientDetailsViewer({
         <nav className="flex space-x-8 px-6">
           {[
             { id: "overview", label: "Medical Overview", icon: Stethoscope },
-            { id: "vitals", label: "Vital Signs", icon: Heart },
+            { id: "combined", label: "Vitals & Prescriptions ✨", icon: Heart },
+            { id: "mcp", label: "AI Assistant 🤖", icon: Brain },
             { id: "labs", label: "Lab Results", icon: Activity },
             { id: "history", label: "Visit History", icon: Calendar },
-            { id: "medications", label: "Current Medications", icon: Pill },
             { id: "insurance", label: "Insurance Info", icon: Shield },
           ].map((tab) => (
             <button
@@ -400,25 +512,181 @@ export function PatientDetailsViewer({
           </div>
         )}
 
-        {activeTab === "vitals" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Object.entries(patient.vital_signs).map(([key, value]) => (
-              <Card key={key}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 capitalize">{key.replace("_", " ")}</p>
-                      <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
-                      {key === "bmi" && (
-                        <p className={`text-sm font-medium mt-1 ${bmiStatus.color}`}>{bmiStatus.status}</p>
-                      )}
+        {activeTab === "combined" && (
+          <div className="space-y-6">
+            {/* Enhanced Combined View with Better Layout */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* Vital Signs Section - Expanded */}
+              <Card className="xl:col-span-2 bg-gradient-to-br from-red-50 to-pink-50 border-red-100">
+                <CardHeader className="border-b border-red-200 bg-white/50 backdrop-blur-sm">
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Heart className="h-5 w-5 text-red-600" />
+                      <span>Current Vital Signs</span>
                     </div>
-                    <Heart className="h-8 w-8 text-red-500" />
+                    <Badge className="bg-red-100 text-red-700">Live Data</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {Object.entries(patient.vital_signs).map(([key, value]) => (
+                      <div key={key} className="p-4 bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-white/50 hover:shadow-md transition-all duration-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-600 capitalize mb-1">
+                              {key.replace("_", " ")}
+                            </p>
+                            <p className="text-xl font-bold text-gray-900">{value}</p>
+                            {key === "bmi" && (
+                              <p className={`text-sm font-medium mt-1 ${bmiStatus.color}`}>{bmiStatus.status}</p>
+                            )}
+                            {key === "blood_pressure" && (
+                              <p className="text-xs text-gray-500 mt-1">mmHg</p>
+                            )}
+                            {key === "heart_rate" && (
+                              <p className="text-xs text-gray-500 mt-1">beats/min</p>
+                            )}
+                            {key === "temperature" && (
+                              <p className="text-xs text-gray-500 mt-1">°F</p>
+                            )}
+                          </div>
+                          <div className="ml-3">
+                            {key === "blood_pressure" && <Heart className="h-7 w-7 text-red-500 opacity-70" />}
+                            {key === "heart_rate" && <Activity className="h-7 w-7 text-blue-500 opacity-70" />}
+                            {key === "bmi" && <TrendingUp className="h-7 w-7 text-green-500 opacity-70" />}
+                            {key === "temperature" && <div className="h-7 w-7 rounded-full bg-orange-100 flex items-center justify-center"><span className="text-orange-600 text-xs font-bold">°F</span></div>}
+                            {key === "weight" && <div className="h-7 w-7 rounded-full bg-purple-100 flex items-center justify-center"><span className="text-purple-600 text-xs font-bold">lb</span></div>}
+                            {key === "height" && <div className="h-7 w-7 rounded-full bg-indigo-100 flex items-center justify-center"><span className="text-indigo-600 text-xs font-bold">in</span></div>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-            ))}
+
+              {/* Recent Prescriptions Section */}
+              <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100">
+                <CardHeader className="border-b border-purple-200 bg-white/50 backdrop-blur-sm">
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Pill className="h-5 w-5 text-purple-600" />
+                      <span>Recent Prescriptions</span>
+                    </div>
+                    <Badge className="bg-purple-100 text-purple-700">Active</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {loadingPrescriptions ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+                    </div>
+                  ) : prescriptions.length > 0 ? (
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                      {prescriptions.map((prescription, index) => (
+                        <div key={index} className="p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-white/50 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-lg text-gray-900 mb-1">{prescription.medication}</h4>
+                              <p className="text-purple-700 font-medium">
+                                {prescription.dosage}, {prescription.frequency}
+                              </p>
+                              <p className="text-sm text-gray-600 mt-2 leading-relaxed">{prescription.instructions}</p>
+                              <div className="flex items-center mt-3 text-xs text-gray-500">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                <span>{formatDate(prescription.created_at)} • {prescription.doctor}</span>
+                              </div>
+                            </div>
+                            <Badge className="bg-purple-100 text-purple-800 ml-4">{prescription.duration}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Pill className="h-12 w-12 text-purple-300 mx-auto mb-3" />
+                      <p className="text-gray-600 mb-4">No active prescriptions</p>
+                      <Button
+                        onClick={() => onGeneratePrescription(patient)}
+                        size="sm"
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        <Brain className="h-4 w-4 mr-2" />
+                        Create First Prescription
+                      </Button>
+                    </div>
+                  )}
+                  <div className="mt-6 pt-4 border-t border-purple-200">
+                    <Button
+                      onClick={() => onGeneratePrescription(patient)}
+                      size="sm"
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      <Brain className="h-4 w-4 mr-2" />
+                      Generate New AI Prescription
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Current Medications - Full Width */}
+            <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-100">
+              <CardHeader className="border-b border-blue-200 bg-white/50 backdrop-blur-sm">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Pill className="h-5 w-5 text-blue-600" />
+                    <span>Current Medications ({patient.current_medications.length})</span>
+                  </div>
+                  <Badge className="bg-blue-100 text-blue-700">Long-term</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {patient.current_medications.map((medication, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-white/50 hover:shadow-md transition-all duration-200">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Pill className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="font-medium text-blue-900 block">{medication}</span>
+                        <span className="text-xs text-blue-600">Ongoing treatment</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Medication Safety Notice */}
+                <div className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200">
+                  <div className="flex items-start space-x-3">
+                    <div className="p-1 bg-yellow-100 rounded-lg">
+                      <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-yellow-800 mb-1">Medication Safety Notes</h4>
+                      <ul className="text-sm text-yellow-700 space-y-1">
+                        <li>• Always verify medication list with patient at each visit</li>
+                        <li>• Check for potential drug interactions before prescribing</li>
+                        <li>• Review allergies: {patient.allergies.join(", ")}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
+        )}
+
+        {activeTab === "mcp" && (
+          <MCPDashboard 
+            patient={patient} 
+            doctorId="dr-current-session" 
+            onPrescriptionGenerated={(prescription) => {
+              console.log("MCP Generated Prescription:", prescription)
+              // Handle the generated prescription
+              onGeneratePrescription(patient)
+            }}
+          />
         )}
 
         {activeTab === "labs" && (
@@ -455,35 +723,6 @@ export function PatientDetailsViewer({
                     ))}
                   </tbody>
                 </table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {activeTab === "medications" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Pill className="h-5 w-5" />
-                <span>Current Medications</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {patient.current_medications.map((medication, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <Pill className="h-5 w-5 text-blue-500" />
-                      <div>
-                        <span className="font-medium text-gray-900">{medication}</span>
-                        <p className="text-sm text-gray-600">Active prescription</p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700">
-                      Active
-                    </Badge>
-                  </div>
-                ))}
               </div>
             </CardContent>
           </Card>
@@ -553,6 +792,29 @@ export function PatientDetailsViewer({
             </CardContent>
           </Card>
         )}
+      </div>
+
+      {/* Enhanced Download Button - Bottom Floating */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <div className="relative group">
+          <Button
+            onClick={downloadPatientData}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-2xl border border-green-500 transition-all duration-300 transform hover:scale-105"
+            size="lg"
+          >
+            <Download className="h-5 w-5 mr-2" />
+            Download Complete Records
+          </Button>
+          
+          {/* Tooltip */}
+          <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+            Export all patient data as JSON
+            <div className="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+          </div>
+          
+          {/* Pulse animation ring */}
+          <div className="absolute inset-0 rounded-lg bg-green-600 opacity-30 animate-ping"></div>
+        </div>
       </div>
     </div>
   )

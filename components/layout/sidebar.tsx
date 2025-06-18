@@ -96,7 +96,7 @@ export function Sidebar() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
 
   return (
-    <div className="flex flex-col w-80 glass-morphism shadow-2xl border-r border-white/30 relative overflow-hidden">
+    <div className="fixed top-0 left-0 h-full flex flex-col w-64 glass-morphism shadow-2xl border-r border-white/30 overflow-hidden z-40">
       {/* Header */}
       <div className="relative h-24 px-6 flex items-center bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
