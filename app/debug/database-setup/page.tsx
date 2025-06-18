@@ -9,135 +9,37 @@ import { supabase } from "@/lib/api"
 export default function DatabaseSetupPage() {
   const [isExecuting, setIsExecuting] = useState(false)
   const [results, setResults] = useState<{success: boolean; message: string; details?: any}[]>([])
+  const [sqlStatements, setSqlStatements] = useState<string[]>([])
   
   const addResult = (success: boolean, message: string, details?: any) => {
     setResults(prev => [...prev, {success, message, details}])
   }
 
-  const updatePrescriptionsSchema = async () => {
+  const checkDatabaseSchema = async () => {
     setIsExecuting(true)
     setResults([])
+    setSqlStatements([])
     
     try {
-      // 1. Check if the prescriptions table exists
-      addResult(true, "Starting database schema update...")
+      addResult(true, "Checking database schema...")
       
-      const { data: tables, error: tablesError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_schema', 'public')
-        .eq('table_name', 'prescriptions')
+      const response = await fetch('/api/check-db-schema')
+      const data = await response.json()
       
-      if (tablesError) {
-        addResult(false, "Error checking if prescriptions table exists", tablesError)
-        return
-      }
-      
-      if (!tables || tables.length === 0) {
-        addResult(false, "Prescriptions table does not exist. Please create it first.")
-        return
-      }
-      
-      addResult(true, "Prescriptions table exists")
-      
-      // 2. Check if medication_details column exists
-      const { data: mdColumn, error: mdError } = await supabase
-        .from('information_schema.columns')
-        .select('column_name')
-        .eq('table_schema', 'public')
-        .eq('table_name', 'prescriptions')
-        .eq('column_name', 'medication_details')
-      
-      if (mdError) {
-        addResult(false, "Error checking for medication_details column", mdError)
-        return
-      }
-      
-      // 3. Add medication_details column if it doesn't exist
-      if (!mdColumn || mdColumn.length === 0) {
-        addResult(true, "Adding medication_details column...")
+      if (response.ok) {
+        addResult(true, "Database schema check completed", data)
         
-        const { error: addMdError } = await supabase.rpc('add_medication_details_column')
-        
-        if (addMdError) {
-          addResult(false, "Error adding medication_details column", addMdError)
-          
-          // Try direct SQL as fallback
-          const { error: sqlError } = await supabase.rpc('execute_sql', {
-            sql_query: 'ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS medication_details JSONB;'
-          })
-          
-          if (sqlError) {
-            addResult(false, "Failed to add medication_details column with direct SQL", sqlError)
-            return
-          } else {
-            addResult(true, "Added medication_details column with direct SQL")
-          }
+        if (data.sqlNeeded && data.sqlNeeded.length > 0) {
+          setSqlStatements(data.sqlNeeded)
+          addResult(true, "SQL statements needed to update schema", { statements: data.sqlNeeded })
         } else {
-          addResult(true, "Added medication_details column")
+          addResult(true, "No schema changes needed")
         }
       } else {
-        addResult(true, "medication_details column already exists")
+        addResult(false, "Error checking database schema", data)
       }
-      
-      // 4. Check if is_ai_generated column exists
-      const { data: aiColumn, error: aiError } = await supabase
-        .from('information_schema.columns')
-        .select('column_name')
-        .eq('table_schema', 'public')
-        .eq('table_name', 'prescriptions')
-        .eq('column_name', 'is_ai_generated')
-      
-      if (aiError) {
-        addResult(false, "Error checking for is_ai_generated column", aiError)
-        return
-      }
-      
-      // 5. Add is_ai_generated column if it doesn't exist
-      if (!aiColumn || aiColumn.length === 0) {
-        addResult(true, "Adding is_ai_generated column...")
-        
-        const { error: addAiError } = await supabase.rpc('add_is_ai_generated_column')
-        
-        if (addAiError) {
-          addResult(false, "Error adding is_ai_generated column", addAiError)
-          
-          // Try direct SQL as fallback
-          const { error: sqlError } = await supabase.rpc('execute_sql', {
-            sql_query: 'ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS is_ai_generated BOOLEAN DEFAULT FALSE;'
-          })
-          
-          if (sqlError) {
-            addResult(false, "Failed to add is_ai_generated column with direct SQL", sqlError)
-            return
-          } else {
-            addResult(true, "Added is_ai_generated column with direct SQL")
-          }
-        } else {
-          addResult(true, "Added is_ai_generated column")
-        }
-      } else {
-        addResult(true, "is_ai_generated column already exists")
-      }
-      
-      // 6. Final verification
-      const { data: columns, error: colError } = await supabase
-        .from('information_schema.columns')
-        .select('column_name')
-        .eq('table_schema', 'public')
-        .eq('table_name', 'prescriptions')
-      
-      if (colError) {
-        addResult(false, "Error verifying final schema", colError)
-        return
-      }
-      
-      const columnNames = columns.map(c => c.column_name)
-      addResult(true, "Final schema verification", { columns: columnNames })
-      
-      addResult(true, "Database schema update completed successfully")
     } catch (error) {
-      addResult(false, "Unexpected error during schema update", error)
+      addResult(false, "Unexpected error during schema check", error)
     } finally {
       setIsExecuting(false)
     }
@@ -150,21 +52,43 @@ export default function DatabaseSetupPage() {
         
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Update Prescriptions Schema</CardTitle>
+            <CardTitle>Check Database Schema</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="mb-4">
-              This tool will update the prescriptions table schema to add the necessary columns for AI prescription storage.
+              This tool will check if your prescriptions table has the necessary columns for storing AI-generated prescriptions.
             </p>
             <Button 
-              onClick={updatePrescriptionsSchema} 
+              onClick={checkDatabaseSchema} 
               disabled={isExecuting}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isExecuting ? "Updating Schema..." : "Update Schema"}
+              {isExecuting ? "Checking Schema..." : "Check Schema"}
             </Button>
           </CardContent>
         </Card>
+        
+        {sqlStatements.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>SQL Statements to Execute</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4">
+                Please execute these SQL statements in your Supabase SQL editor:
+              </p>
+              <div className="bg-gray-100 p-4 rounded-md">
+                <pre className="text-sm">
+                  {sqlStatements.join('\n')}
+                </pre>
+              </div>
+              <p className="mt-4 text-sm text-gray-600">
+                Note: You need to execute these statements manually in the Supabase dashboard SQL editor, 
+                as browser-based apps don't have permission to modify database schemas directly.
+              </p>
+            </CardContent>
+          </Card>
+        )}
         
         <Card>
           <CardHeader>
@@ -172,7 +96,7 @@ export default function DatabaseSetupPage() {
           </CardHeader>
           <CardContent>
             {results.length === 0 ? (
-              <p className="text-gray-500">Run the schema update to see results</p>
+              <p className="text-gray-500">Run the schema check to see results</p>
             ) : (
               <div className="space-y-3">
                 {results.map((result, index) => (

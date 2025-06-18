@@ -11,6 +11,8 @@ export default function PatientsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [showForm, setShowForm] = useState(false)
+  const [selectedPatient, setSelectedPatient] = useState<Patient | undefined>(undefined)
+  const [isEditing, setIsEditing] = useState(false)
 
   useEffect(() => {
     // Ensure page starts at top
@@ -43,6 +45,12 @@ export default function PatientsPage() {
       console.error("Error deleting patient:", error)
     }
   }
+  
+  const handleEdit = (patient: Patient) => {
+    setSelectedPatient(patient)
+    setIsEditing(true)
+    setShowForm(true)
+  }
 
   const filteredPatients = patients.filter(
     (patient) =>
@@ -58,7 +66,11 @@ export default function PatientsPage() {
           <p className="text-gray-600 mt-2">Manage patient records</p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setSelectedPatient(undefined)
+            setIsEditing(false)
+            setShowForm(true)
+          }}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 animate-slide-in-right"
         >
           ➕ Add Patient
@@ -122,7 +134,9 @@ export default function PatientsPage() {
               </div>
 
               <div className="flex justify-end space-x-2 mt-4 pt-4 border-t border-gray-200">
-                <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors duration-200">
+                <button 
+                  onClick={() => handleEdit(patient)}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors duration-200">
                   ✏️ Edit
                 </button>
                 <button
@@ -140,9 +154,17 @@ export default function PatientsPage() {
       {showForm && (
         <div className="animate-fade-in">
           <PatientForm
-            onClose={() => setShowForm(false)}
+            patient={selectedPatient}
+            isEdit={isEditing}
+            onClose={() => {
+              setShowForm(false)
+              setSelectedPatient(undefined)
+              setIsEditing(false)
+            }}
             onSuccess={() => {
               setShowForm(false)
+              setSelectedPatient(undefined)
+              setIsEditing(false)
               fetchPatients()
             }}
           />

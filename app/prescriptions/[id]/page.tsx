@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Save, Trash2 } from "lucide-react"
-import type { Prescription } from "@/types/prescription"
+import { ArrowLeft, Save, Trash2, Plus } from "lucide-react"
+import type { Prescription, MedicationDetails } from "@/types/prescription"
 
 export default function EditPrescriptionPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -27,6 +27,15 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
     try {
       setLoading(true)
       const { data } = await apiService.getPrescriptionById(params.id)
+      
+      // Initialize medication_details if it doesn't exist
+      if (data && !data.medication_details) {
+        data.medication_details = {
+          warnings: [],
+          interactions: [],
+        }
+      }
+      
       setPrescription(data)
     } catch (error) {
       console.error("Error fetching prescription:", error)
@@ -47,7 +56,7 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
         frequency: prescription.frequency,
         duration: prescription.duration,
         instructions: prescription.instructions,
-        medication_details: prescription.medication_details
+        medication_details: prescription.medication_details || {}
       })
       alert("Prescription updated successfully")
       router.push("/prescriptions")
@@ -68,14 +77,126 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
   }
 
   const handleDetailChange = (field: string, value: any) => {
-    if (!prescription || !prescription.medication_details) return
+    if (!prescription) return
+    
+    // Initialize medication_details if it doesn't exist
+    const currentDetails = prescription.medication_details || {}
+    
     setPrescription({
       ...prescription,
       medication_details: {
-        ...prescription.medication_details,
+        ...currentDetails,
         [field]: value
       }
     })
+  }
+
+  const handleWarningChange = (index: number, value: string) => {
+    if (!prescription) return
+    
+    // Initialize medication_details and warnings if they don't exist
+    const currentDetails = prescription.medication_details || {}
+    const currentWarnings = Array.isArray(currentDetails.warnings) ? [...currentDetails.warnings] : []
+    
+    currentWarnings[index] = value
+    
+    setPrescription({
+      ...prescription,
+      medication_details: {
+        ...currentDetails,
+        warnings: currentWarnings
+      }
+    })
+  }
+  
+  const addWarning = () => {
+    if (!prescription) return
+    
+    // Initialize medication_details and warnings if they don't exist
+    const currentDetails = prescription.medication_details || {}
+    const currentWarnings = Array.isArray(currentDetails.warnings) ? [...currentDetails.warnings] : []
+    
+    setPrescription({
+      ...prescription,
+      medication_details: {
+        ...currentDetails,
+        warnings: [...currentWarnings, ""]
+      }
+    })
+  }
+  
+  const removeWarning = (index: number) => {
+    if (!prescription) return
+    
+    // Initialize medication_details and warnings if they don't exist
+    const currentDetails = prescription.medication_details || {}
+    const currentWarnings = Array.isArray(currentDetails.warnings) ? [...currentDetails.warnings] : []
+    
+    if (index >= 0 && index < currentWarnings.length) {
+      currentWarnings.splice(index, 1)
+      
+      setPrescription({
+        ...prescription,
+        medication_details: {
+          ...currentDetails,
+          warnings: currentWarnings
+        }
+      })
+    }
+  }
+  
+  const handleInteractionChange = (index: number, value: string) => {
+    if (!prescription) return
+    
+    // Initialize medication_details and interactions if they don't exist
+    const currentDetails = prescription.medication_details || {}
+    const currentInteractions = Array.isArray(currentDetails.interactions) ? [...currentDetails.interactions] : []
+    
+    currentInteractions[index] = value
+    
+    setPrescription({
+      ...prescription,
+      medication_details: {
+        ...currentDetails,
+        interactions: currentInteractions
+      }
+    })
+  }
+  
+  const addInteraction = () => {
+    if (!prescription) return
+    
+    // Initialize medication_details and interactions if they don't exist
+    const currentDetails = prescription.medication_details || {}
+    const currentInteractions = Array.isArray(currentDetails.interactions) ? [...currentDetails.interactions] : []
+    
+    setPrescription({
+      ...prescription,
+      medication_details: {
+        ...currentDetails,
+        interactions: [...currentInteractions, ""]
+      }
+    })
+  }
+  
+  const removeInteraction = (index: number) => {
+    if (!prescription) return
+    
+    // Initialize medication_details and interactions if they don't exist
+    const currentDetails = prescription.medication_details || {}
+    const currentInteractions = Array.isArray(currentDetails.interactions) ? [...currentDetails.interactions] : []
+    
+    if (index >= 0 && index < currentInteractions.length) {
+      currentInteractions.splice(index, 1)
+      
+      setPrescription({
+        ...prescription,
+        medication_details: {
+          ...currentDetails,
+          interactions: currentInteractions
+        }
+      })
+    }
   }
 
   if (loading) {
@@ -113,6 +234,8 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
       </div>
     )
   }
+
+  const medicationDetails = prescription.medication_details || {}
 
   return (
     <div className="page-content">
@@ -178,78 +301,139 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
             </CardContent>
           </Card>
 
-          {prescription.medication_details && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {prescription.medication_details.generic_name && (
-                  <div>
-                    <Label htmlFor="genericName">Generic Name</Label>
-                    <Input
-                      id="genericName"
-                      value={prescription.medication_details.generic_name}
-                      onChange={(e) => handleDetailChange("generic_name", e.target.value)}
-                    />
-                  </div>
-                )}
-                {prescription.medication_details.route && (
-                  <div>
-                    <Label htmlFor="route">Route</Label>
-                    <Input
-                      id="route"
-                      value={prescription.medication_details.route}
-                      onChange={(e) => handleDetailChange("route", e.target.value)}
-                    />
-                  </div>
-                )}
-                {prescription.medication_details.warnings && (
-                  <div>
-                    <Label>Warnings</Label>
-                    <div className="border rounded-md p-3 bg-gray-50">
-                      <ul className="list-disc pl-5 space-y-1">
-                        {prescription.medication_details.warnings.map((warning, index) => (
-                          <li key={index}>{warning}</li>
-                        ))}
-                      </ul>
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="genericName">Generic Name</Label>
+                <Input
+                  id="genericName"
+                  value={medicationDetails.generic_name || ""}
+                  onChange={(e) => handleDetailChange("generic_name", e.target.value)}
+                  placeholder="Generic medication name"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="route">Route of Administration</Label>
+                <Input
+                  id="route"
+                  value={medicationDetails.route || ""}
+                  onChange={(e) => handleDetailChange("route", e.target.value)}
+                  placeholder="Oral, Topical, etc."
+                />
+              </div>
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Warnings</Label>
+                  <Button 
+                    variant="outline" 
+                    onClick={addWarning} 
+                    className="h-8 px-2 text-xs flex items-center"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add
+                  </Button>
+                </div>
+                
+                <div className="border rounded-md p-3 bg-gray-50 min-h-[100px]">
+                  {Array.isArray(medicationDetails.warnings) && medicationDetails.warnings.length > 0 ? (
+                    <ul className="space-y-2">
+                      {medicationDetails.warnings.map((warning, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <Input
+                            value={warning}
+                            onChange={(e) => handleWarningChange(index, e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button
+                            variant="ghost"
+                            onClick={() => removeWarning(index)}
+                            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[100px] text-gray-400">
+                      <p>No warnings added</p>
+                      <Button variant="ghost" onClick={addWarning} className="mt-2">
+                        <Plus className="h-4 w-4 mr-1" /> Add Warning
+                      </Button>
                     </div>
-                  </div>
-                )}
-                {prescription.medication_details.interactions && (
-                  <div>
-                    <Label>Interactions</Label>
-                    <div className="border rounded-md p-3 bg-gray-50">
-                      <ul className="list-disc pl-5 space-y-1">
-                        {prescription.medication_details.interactions.map((interaction, index) => (
-                          <li key={index}>{interaction}</li>
-                        ))}
-                      </ul>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Interactions</Label>
+                  <Button 
+                    variant="outline" 
+                    onClick={addInteraction} 
+                    className="h-8 px-2 text-xs flex items-center"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add
+                  </Button>
+                </div>
+                
+                <div className="border rounded-md p-3 bg-gray-50 min-h-[100px]">
+                  {Array.isArray(medicationDetails.interactions) && medicationDetails.interactions.length > 0 ? (
+                    <ul className="space-y-2">
+                      {medicationDetails.interactions.map((interaction, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <Input
+                            value={interaction}
+                            onChange={(e) => handleInteractionChange(index, e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button
+                            variant="ghost"
+                            onClick={() => removeInteraction(index)}
+                            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[100px] text-gray-400">
+                      <p>No interactions added</p>
+                      <Button variant="ghost" onClick={addInteraction} className="mt-2">
+                        <Plus className="h-4 w-4 mr-1" /> Add Interaction
+                      </Button>
                     </div>
-                  </div>
-                )}
-                {prescription.medication_details.cost_estimate && (
-                  <div>
-                    <Label htmlFor="costEstimate">Cost Estimate</Label>
-                    <Input
-                      id="costEstimate"
-                      value={prescription.medication_details.cost_estimate}
-                      onChange={(e) => handleDetailChange("cost_estimate", e.target.value)}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="costEstimate">Cost Estimate</Label>
+                <Input
+                  id="costEstimate"
+                  value={medicationDetails.cost_estimate || ""}
+                  onChange={(e) => handleDetailChange("cost_estimate", e.target.value)}
+                  placeholder="$10-15/month"
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="mt-6 flex justify-end space-x-4">
           <Button variant="outline" onClick={() => router.push("/prescriptions")}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving} className="bg-green-600 hover:bg-green-700">
             <Save className="mr-2 h-4 w-4" />
-            Save Changes
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>

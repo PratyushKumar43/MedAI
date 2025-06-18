@@ -25,9 +25,32 @@ export function AIPrescriptionGenerator({ patient, onClose, onSavePrescription }
   const [aiResponse, setAiResponse] = useState<AIPrescriptionResponse | null>(null)
   const [contextualRecommendations, setContextualRecommendations] = useState<any>(null)
   const [step, setStep] = useState<"input" | "generating" | "review" | "complete">("input")
+  const [doctors, setDoctors] = useState<any[]>([])
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>("")
 
   useEffect(() => {
-    initializeMCPSession()
+    // Fetch doctors and initialize MCP session
+    const initialize = async () => {
+      try {
+        // Get available doctors
+        const { data: doctorsData } = await apiService.getDoctors()
+        setDoctors(doctorsData || [])
+        
+        // Set a default doctor if available
+        if (doctorsData && doctorsData.length > 0) {
+          setSelectedDoctorId(doctorsData[0].id)
+          await initializeMCPSession(doctorsData[0].id)
+        } else {
+          console.error("No doctors available in the system")
+          alert("No doctors available. Please add a doctor first.")
+        }
+      } catch (error) {
+        console.error("Error during initialization:", error)
+      }
+    }
+    
+    initialize()
+    
     return () => {
       if (mcpServer.isSessionActive) {
         mcpServer.endSession()
@@ -35,10 +58,10 @@ export function AIPrescriptionGenerator({ patient, onClose, onSavePrescription }
     }
   }, [])
 
-  const initializeMCPSession = async () => {
+  const initializeMCPSession = async (doctorId: string) => {
     try {
       console.log("🚀 Initializing MCP session for AI prescription generation...")
-      await mcpServer.initializeSession(patient.id, "doctor-001") // Mock doctor ID
+      await mcpServer.initializeSession(patient.id, doctorId)
       setMcpInitialized(true)
       console.log("✅ MCP session initialized successfully")
     } catch (error) {
@@ -99,7 +122,7 @@ export function AIPrescriptionGenerator({ patient, onClose, onSavePrescription }
       for (const medication of aiResponse.medications) {
         const prescriptionData = {
           patient_id: patient.id,
-          doctor_id: "doctor-001", // Mock doctor ID
+          doctor_id: selectedDoctorId, // Use the real doctor ID
           medication: medication.name,
           dosage: medication.dosage,
           frequency: medication.frequency,
@@ -249,6 +272,33 @@ export function AIPrescriptionGenerator({ patient, onClose, onSavePrescription }
                   rows={2}
                   className="mt-1"
                 />
+              </div>
+
+              {/* Doctor Selection */}
+              <div className="mb-4">
+                <Label htmlFor="doctor" className="mb-2 block">Prescribing Doctor</Label>
+                <select
+                  id="doctor"
+                  value={selectedDoctorId}
+                  onChange={(e) => setSelectedDoctorId(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  disabled={loading || step !== "input"}
+                  aria-label="Select Doctor"
+                >
+                  {doctors.length === 0 && (
+                    <option value="">No doctors available</option>
+                  )}
+                  {doctors.map((doctor) => (
+                    <option key={doctor.id} value={doctor.id}>
+                      {doctor.name} - {doctor.specialization}
+                    </option>
+                  ))}
+                </select>
+                {doctors.length === 0 && (
+                  <p className="text-red-500 text-sm mt-1">
+                    No doctors available. Please add a doctor first.
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end space-x-3">

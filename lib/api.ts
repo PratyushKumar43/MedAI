@@ -344,4 +344,19 @@ export const apiService = {
       throw error
     }
   },
+
+  // Utility function to get a default doctor ID
+  async getDefaultDoctorId() {
+    try {
+      const { data } = await this.getDoctors();
+      if (!data || data.length === 0) {
+        console.error("No doctors found in database");
+        throw new Error("No doctors found in database. Please add a doctor first.");
+      }
+      return data[0].id; // Return the ID of the first doctor
+    } catch (error) {
+      console.error("Error getting default doctor ID:", error);
+      throw error;
+    }
+  },
 }

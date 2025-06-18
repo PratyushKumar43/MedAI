@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import type { PatientDetails } from "@/types/patient-details"
+import type { PatientDetails, AIPrescriptionResponse } from "@/types/patient-details"
 import { genericAIService } from "@/lib/generic-ai"
 import { mcpServer } from "@/lib/mcp-server"
 import { apiService } from "@/lib/api"
@@ -40,9 +40,32 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
   const [loading, setLoading] = useState(false)
   const [aiReasoning, setAiReasoning] = useState("")
   const [mcpInitialized, setMcpInitialized] = useState(false)
+  const [doctors, setDoctors] = useState<any[]>([])
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>("")
 
   useEffect(() => {
-    initializeMCP()
+    // Fetch doctors and initialize MCP
+    const initialize = async () => {
+      try {
+        // Get available doctors
+        const { data: doctorsData } = await apiService.getDoctors()
+        setDoctors(doctorsData || [])
+        
+        // Set a default doctor if available
+        if (doctorsData && doctorsData.length > 0) {
+          setSelectedDoctorId(doctorsData[0].id)
+          await initializeMCP(doctorsData[0].id)
+        } else {
+          console.error("No doctors available in the system")
+          alert("No doctors available. Please add a doctor first.")
+        }
+      } catch (error) {
+        console.error("Error during initialization:", error)
+      }
+    }
+    
+    initialize()
+    
     return () => {
       if (mcpServer.isSessionActive) {
         mcpServer.endSession()
@@ -50,9 +73,9 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
     }
   }, [])
 
-  const initializeMCP = async () => {
+  const initializeMCP = async (doctorId: string) => {
     try {
-      await mcpServer.initializeSession(patient.id, "doctor-001")
+      await mcpServer.initializeSession(patient.id, doctorId)
       setMcpInitialized(true)
       console.log("✅ MCP Server initialized for prescription workflow")
     } catch (error) {
@@ -92,14 +115,14 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
       const aiResponse = await genericAIService.generatePrescriptionRecommendations(prescriptionRequest)
 
       // Transform AI response to our format
-      const prescriptions: GeneratedPrescription[] = aiResponse.medications.map((med) => ({
+      const prescriptions: GeneratedPrescription[] = aiResponse.medications.map((med: AIPrescriptionResponse['medications'][0]) => ({
         medication: med.name,
         dosage: med.dosage,
         frequency: med.frequency,
         duration: med.duration,
         instructions: med.instructions,
-        warnings: med.warnings,
-        confidence: med.confidence || 85,
+        warnings: med.warnings || [],
+        confidence: aiResponse.confidence_score || 85,
       }))
 
       setGeneratedPrescriptions(prescriptions)
@@ -132,7 +155,7 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
       for (const prescription of editingPrescriptions) {
         const prescriptionData = {
           patient_id: patient.id,
-          doctor_id: "doctor-001", // Mock doctor ID
+          doctor_id: selectedDoctorId, // Use selected doctor ID
           medication: prescription.medication,
           dosage: prescription.dosage,
           frequency: prescription.frequency,
@@ -281,13 +304,41 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
               />
             </div>
 
+            <div>
+              <Label htmlFor="doctor" className="text-base font-medium">
+                Prescribing Doctor *
+              </Label>
+              <select
+                id="doctor"
+                value={selectedDoctorId}
+                onChange={(e) => setSelectedDoctorId(e.target.value)}
+                className="w-full p-2 border rounded mt-2"
+                disabled={loading}
+                aria-label="Select Doctor"
+              >
+                {doctors.length === 0 && (
+                  <option value="">No doctors available</option>
+                )}
+                {doctors.map((doctor) => (
+                  <option key={doctor.id} value={doctor.id}>
+                    {doctor.name} - {doctor.specialization}
+                  </option>
+                ))}
+              </select>
+              {doctors.length === 0 && (
+                <p className="text-sm text-red-500 mt-1">
+                  No doctors available. Please add a doctor first.
+                </p>
+              )}
+            </div>
+
             <div className="flex justify-end space-x-3">
               <Button variant="outline" onClick={onCancel}>
                 Cancel
               </Button>
               <Button
                 onClick={handleGeneratePrescription}
-                disabled={!symptoms.trim() || loading}
+                disabled={!symptoms.trim() || !selectedDoctorId || loading}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 <Brain className="h-4 w-4 mr-2" />

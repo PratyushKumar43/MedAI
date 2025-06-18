@@ -156,76 +156,72 @@ export function PatientForm({ onClose, onSuccess, patient, isEdit = false }: Pat
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">      <div className={`bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto ${isEdit ? 'border-l-4 border-blue-500' : ''}`}>        <div className={`flex justify-between items-center p-6 border-b border-gray-200 ${isEdit ? 'bg-blue-50' : ''}`}>
-          <h2 className={`text-xl font-semibold ${isEdit ? 'text-blue-800' : 'text-gray-900'}`}>
-            {isEdit ? 'Edit Patient: ' + patient?.name : 'Add New Patient'}
-          </h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">{isEdit ? 'Edit' : 'Add New'} Patient</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             ✕
           </button>
-        </div>        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Basic Information - Two column layout */}
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <h3 className="font-medium text-gray-900 mb-4">Patient Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Full Name
+            </label>
+            <input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
 
-              <div>
-                <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700">
-                  Date of Birth
-                </label>
-                <input
-                  id="date_of_birth"
-                  name="date_of_birth"
-                  type="date"
-                  value={formData.date_of_birth}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              Phone
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
 
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                  Phone
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-            </div>
+          <div>
+            <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700">
+              Date of Birth
+            </label>
+            <input
+              id="date_of_birth"
+              name="date_of_birth"
+              type="date"
+              value={formData.date_of_birth}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+            />
           </div>
 
           <div>
@@ -237,10 +233,12 @@ export function PatientForm({ onClose, onSuccess, patient, isEdit = false }: Pat
               name="address"
               value={formData.address}
               onChange={handleChange}
-              rows={2}
+              rows={3}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
             />
-          </div>          <div>
+          </div>
+
+          <div>
             <label htmlFor="medical_history" className="block text-sm font-medium text-gray-700">
               Medical History
             </label>
@@ -249,14 +247,16 @@ export function PatientForm({ onClose, onSuccess, patient, isEdit = false }: Pat
               name="medical_history"
               value={formData.medical_history}
               onChange={handleChange}
-              rows={3}
+              rows={4}
               placeholder="Enter patient's medical history..."
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
             />
-          </div>{/* Vital Signs Section */}
+          </div>
+
+          {/* Vital Signs Section */}
           <div className="pt-4 border-t border-gray-200">
             <h3 className="font-medium text-gray-900 mb-4">Vital Signs</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="vital_blood_pressure" className="block text-sm font-medium text-gray-700">
                   Blood Pressure (mmHg)
@@ -302,7 +302,8 @@ export function PatientForm({ onClose, onSuccess, patient, isEdit = false }: Pat
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                 />
               </div>
-                <div>
+              
+              <div>
                 <label htmlFor="vital_weight" className="block text-sm font-medium text-gray-700">
                   Weight (kg)
                 </label>
@@ -350,21 +351,20 @@ export function PatientForm({ onClose, onSuccess, patient, isEdit = false }: Pat
             <p className="text-sm text-gray-500 italic mt-2">
               * Leave blank if not assessed. Blank fields will be marked as "Not Examined".
             </p>
-          </div>          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100">
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm"
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Cancel
-            </button>            <button
+            </button>
+            <button
               type="submit"
               disabled={loading}
-              className={`px-6 py-2.5 border border-transparent rounded-md text-sm font-medium text-white disabled:opacity-50 shadow-sm ${
-                isEdit 
-                  ? 'bg-blue-600 hover:bg-blue-700' 
-                  : 'bg-green-600 hover:bg-green-700'
-              }`}
+              className="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
             >
               {loading ? (isEdit ? "Updating..." : "Creating...") : (isEdit ? "Update Patient" : "Create Patient")}
             </button>

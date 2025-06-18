@@ -280,4 +280,95 @@ export default function HealthMonitorPage() {
                       <div className="text-xs text-gray-500">Oxygen Sat</div>
                     </div>
                   </div>
-                </div>\
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Selected Patient Details */}
+        <div className="glass-morphism rounded-3xl shadow-2xl border border-white/30 p-6 h-fit">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-poppins">Patient Details</h2>
+          
+          {selectedPatient ? (
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${getStatusColor(selectedPatient.status)} flex items-center justify-center shadow-lg`}>
+                  <Activity className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">{selectedPatient.patientName}</h3>
+                  <p className="text-gray-600">Room: {selectedPatient.room}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="glass-morphism rounded-xl p-4 border border-white/30">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Heart className="h-5 w-5 text-red-500" />
+                      <h4 className="font-medium">Heart Rate</h4>
+                    </div>
+                    <p className="text-2xl font-bold">{Math.round(selectedPatient.heartRate)} <span className="text-sm font-normal text-gray-500">BPM</span></p>
+                    <p className="text-xs text-gray-500 mt-1">Normal range: 60-100 BPM</p>
+                  </div>
+                  
+                  <div className="glass-morphism rounded-xl p-4 border border-white/30">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Activity className="h-5 w-5 text-blue-500" />
+                      <h4 className="font-medium">Blood Pressure</h4>
+                    </div>
+                    <p className="text-2xl font-bold">{selectedPatient.bloodPressure} <span className="text-sm font-normal text-gray-500">mmHg</span></p>
+                    <p className="text-xs text-gray-500 mt-1">Normal range: ≤120/80 mmHg</p>
+                  </div>
+                  
+                  <div className="glass-morphism rounded-xl p-4 border border-white/30">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Thermometer className="h-5 w-5 text-orange-500" />
+                      <h4 className="font-medium">Temperature</h4>
+                    </div>
+                    <p className="text-2xl font-bold">{selectedPatient.temperature.toFixed(1)} <span className="text-sm font-normal text-gray-500">°F</span></p>
+                    <p className="text-xs text-gray-500 mt-1">Normal range: 97.8-99.1°F</p>
+                  </div>
+                  
+                  <div className="glass-morphism rounded-xl p-4 border border-white/30">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Droplets className="h-5 w-5 text-cyan-500" />
+                      <h4 className="font-medium">Oxygen Saturation</h4>
+                    </div>
+                    <p className="text-2xl font-bold">{Math.round(selectedPatient.oxygenSat)} <span className="text-sm font-normal text-gray-500">%</span></p>
+                    <p className="text-xs text-gray-500 mt-1">Normal range: 95-100%</p>
+                  </div>
+                </div>
+                
+                <div className="glass-morphism rounded-xl p-4 border border-white/30">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-3 h-3 bg-${selectedPatient.status === 'stable' ? 'green' : selectedPatient.status === 'warning' ? 'yellow' : 'red'}-500 rounded-full animate-pulse`}></div>
+                      <h4 className="font-medium capitalize">{selectedPatient.status} Status</h4>
+                    </div>
+                    <p className="text-xs text-gray-500">Updated: {selectedPatient.lastUpdated.toLocaleTimeString()}</p>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-600">
+                    {selectedPatient.status === 'stable' ? 
+                      'Patient vitals are within normal ranges.' : 
+                      selectedPatient.status === 'warning' ? 
+                      'One or more vitals require attention.' : 
+                      'Immediate medical attention required.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-4">
+                <Activity className="h-8 w-8 text-gray-400" />
+              </div>
+              <p className="text-gray-600">Select a patient to view detailed vital information</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

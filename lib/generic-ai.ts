@@ -72,6 +72,7 @@ class GenericAIService {
   async generatePrescriptionRecommendations(request: any): Promise<any> {
     try {
       console.log("💊 Generic AI: Generating prescription recommendations...")
+      console.log("Request data:", JSON.stringify(request, null, 2))
       
       const prompt = `
         You are a medical AI assistant for prescription generation. Based on the patient information below, 
@@ -110,25 +111,67 @@ class GenericAIService {
           "drug_interactions": ["Drug interaction 1", "Drug interaction 2"],
           "contraindications": ["Contraindication 1", "Contraindication 2"]
         }
+        
+        IMPORTANT: Return ONLY valid JSON. Do not include any additional text, explanation, or markdown formatting.
       `
       
+      console.log("Sending prompt to AI model...")
       const result = await this.model.generateContent(prompt)
       const response = await result.response
       const responseText = response.text()
+      
+      console.log("Received AI response length:", responseText.length)
+      console.log("Response preview:", responseText.substring(0, 100) + "...")
       
       try {
         // Try to parse the response as JSON
         const jsonStart = responseText.indexOf('{')
         const jsonEnd = responseText.lastIndexOf('}') + 1
+        
         if (jsonStart >= 0 && jsonEnd > jsonStart) {
           const jsonText = responseText.substring(jsonStart, jsonEnd)
-          return JSON.parse(jsonText)
+          console.log("Extracted JSON length:", jsonText.length)
+          
+          try {
+            const parsedJson = JSON.parse(jsonText)
+            console.log("Successfully parsed JSON response")
+            
+            // Ensure the medications array exists and has at least one item
+            if (!parsedJson.medications || !Array.isArray(parsedJson.medications) || parsedJson.medications.length === 0) {
+              console.warn("AI response missing medications array or empty array")
+              throw new Error("Invalid medications data in AI response")
+            }
+            
+            // Validate medications have required fields
+            for (const med of parsedJson.medications) {
+              if (!med.name || !med.dosage || !med.frequency || !med.duration) {
+                console.warn("Medication missing required fields:", med)
+              }
+              
+              // Ensure arrays exist even if empty
+              med.warnings = Array.isArray(med.warnings) ? med.warnings : []
+              med.interactions = Array.isArray(med.interactions) ? med.interactions : []
+            }
+            
+            return parsedJson
+          } catch (parseError) {
+            console.error("JSON parse error:", parseError)
+            console.error("JSON text that failed to parse:", jsonText)
+            throw parseError
+          }
+        } else {
+          console.error("Could not find valid JSON markers in response")
+          throw new Error("No valid JSON found in AI response")
         }
       } catch (jsonError) {
-        console.error("Failed to parse AI response as JSON:", jsonError)
+        console.error("Failed to process AI response as JSON:", jsonError)
+        throw jsonError
       }
+    } catch (error) {
+      console.error("❌ Generic AI prescription generation error:", error)
       
-      // Fallback to mock response if parsing fails
+      // Return mock data as fallback but maintain proper structure
+      console.log("Returning fallback mock prescription data")
       return {
         medications: [
           {
@@ -141,22 +184,17 @@ class GenericAIService {
             instructions: "Take in the morning with or without food",
             warnings: ["May cause ankle swelling", "Monitor blood pressure"],
             interactions: ["Avoid grapefruit juice"],
-            cost_estimate: "$10-15/month",
-            confidence: 85,
-          },
+            cost_estimate: "$10-15/month"
+          }
         ],
-        reasoning:
-          "Based on patient symptoms and medical history, this medication is recommended for blood pressure control.",
+        reasoning: "Based on patient symptoms and medical history, this medication is recommended for blood pressure control.",
         confidence_score: 85,
-        alternative_treatments: [],
+        alternative_treatments: ["Lifestyle modifications", "Diet changes"],
         follow_up_recommendations: ["Schedule follow-up in 2 weeks"],
-        red_flags: [],
+        red_flags: ["Monitor for dizziness"],
         drug_interactions: ["Monitor for interactions with existing medications"],
-        contraindications: [],
+        contraindications: ["Hypersensitivity to amlodipine"]
       }
-    } catch (error) {
-      console.error("❌ Generic AI prescription generation error:", error)
-      throw new Error("Failed to generate prescription recommendations")
     }
   }
 

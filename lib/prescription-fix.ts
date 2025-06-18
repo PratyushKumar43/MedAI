@@ -15,14 +15,35 @@ export async function checkPrescriptionsTable() {
   }
 }
 
+// Function to get a valid doctor ID from the database
+export async function getValidDoctorId() {
+  try {
+    const { data } = await apiService.getDoctors();
+    if (!data || data.length === 0) {
+      console.error("No doctors found in database");
+      return null;
+    }
+    return data[0].id; // Return the ID of the first doctor
+  } catch (error) {
+    console.error("Error getting doctor ID:", error);
+    return null;
+  }
+}
+
 // Simplified function to save a basic prescription without complex nested data
 export async function saveSimplePrescription(patientId: string) {
   try {
     console.log("Saving simple prescription...");
     
+    // Get a valid doctor ID
+    const doctorId = await getValidDoctorId();
+    if (!doctorId) {
+      return { error: "No valid doctor ID found. Please add a doctor to the system." };
+    }
+    
     const prescriptionData = {
       patient_id: patientId,
-      doctor_id: "doctor-001", // Mock doctor ID
+      doctor_id: doctorId, // Use a real doctor ID
       medication: "Test Medication",
       dosage: "1 pill",
       frequency: "Once daily",
@@ -45,9 +66,15 @@ export async function savePrescriptionWithDetails(patientId: string) {
   try {
     console.log("Saving prescription with details...");
     
+    // Get a valid doctor ID
+    const doctorId = await getValidDoctorId();
+    if (!doctorId) {
+      return { error: "No valid doctor ID found. Please add a doctor to the system." };
+    }
+    
     const prescriptionData = {
       patient_id: patientId,
-      doctor_id: "doctor-001", // Mock doctor ID
+      doctor_id: doctorId, // Use a real doctor ID
       medication: "Test Medication with Details",
       dosage: "10mg",
       frequency: "Twice daily",
