@@ -1,0 +1,283 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Activity, Heart, Thermometer, Droplets } from "lucide-react"
+
+interface PatientVitals {
+  id: string
+  patientName: string
+  room: string
+  heartRate: number
+  bloodPressure: string
+  temperature: number
+  oxygenSat: number
+  respiratoryRate: number
+  status: "stable" | "warning" | "critical"
+  lastUpdated: Date
+}
+
+export default function HealthMonitorPage() {
+  const [patients, setPatients] = useState<PatientVitals[]>([
+    {
+      id: "1",
+      patientName: "John Smith",
+      room: "ICU-101",
+      heartRate: 72,
+      bloodPressure: "120/80",
+      temperature: 98.6,
+      oxygenSat: 98,
+      respiratoryRate: 16,
+      status: "stable",
+      lastUpdated: new Date()
+    },
+    {
+      id: "2",
+      patientName: "Maria Garcia",
+      room: "Ward-205",
+      heartRate: 88,
+      bloodPressure: "140/90",
+      temperature: 99.2,
+      oxygenSat: 95,
+      respiratoryRate: 18,
+      status: "warning",
+      lastUpdated: new Date()
+    },
+    {
+      id: "3",
+      patientName: "Robert Brown",
+      room: "ICU-102",
+      heartRate: 110,
+      bloodPressure: "160/100",
+      temperature: 101.3,
+      oxygenSat: 92,
+      respiratoryRate: 22,
+      status: "critical",
+      lastUpdated: new Date()
+    },
+    {
+      id: "4",
+      patientName: "Emily Johnson",
+      room: "Ward-210",
+      heartRate: 68,
+      bloodPressure: "110/70",
+      temperature: 98.2,
+      oxygenSat: 97,
+      respiratoryRate: 14,
+      status: "stable",
+      lastUpdated: new Date()
+    },
+    {
+      id: "5",
+      patientName: "Michael Wilson",
+      room: "ICU-105",
+      heartRate: 95,
+      bloodPressure: "150/95",
+      temperature: 100.4,
+      oxygenSat: 94,
+      respiratoryRate: 20,
+      status: "warning",
+      lastUpdated: new Date()
+    }
+  ])
+  
+  const [selectedPatient, setSelectedPatient] = useState<PatientVitals | null>(null)
+  const [filter, setFilter] = useState<"all" | "critical" | "warning" | "stable">("all")
+
+  useEffect(() => {
+    // Simulate real-time updates
+    const interval = setInterval(() => {
+      setPatients(prev => 
+        prev.map(patient => ({
+          ...patient,
+          heartRate: Math.max(40, Math.min(180, patient.heartRate + (Math.random() - 0.5) * 5)),
+          temperature: Math.max(95, Math.min(104, patient.temperature + (Math.random() - 0.5) * 0.3)),
+          oxygenSat: Math.max(85, Math.min(100, patient.oxygenSat + (Math.random() - 0.5) * 2)),
+          respiratoryRate: Math.max(10, Math.min(30, patient.respiratoryRate + (Math.random() - 0.5) * 2)),
+          lastUpdated: new Date(),
+          status: determineStatus({
+            ...patient,
+            heartRate: Math.max(40, Math.min(180, patient.heartRate + (Math.random() - 0.5) * 5)),
+            temperature: Math.max(95, Math.min(104, patient.temperature + (Math.random() - 0.5) * 0.3)),
+            oxygenSat: Math.max(85, Math.min(100, patient.oxygenSat + (Math.random() - 0.5) * 2)),
+            respiratoryRate: Math.max(10, Math.min(30, patient.respiratoryRate + (Math.random() - 0.5) * 2)),
+          })
+        }))
+      )
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const determineStatus = (patient: Omit<PatientVitals, 'status'>): "stable" | "warning" | "critical" => {
+    if (
+      patient.heartRate > 120 || 
+      patient.heartRate < 50 || 
+      patient.temperature > 101 || 
+      patient.oxygenSat < 90 ||
+      patient.respiratoryRate > 24
+    ) {
+      return "critical"
+    } else if (
+      patient.heartRate > 100 || 
+      patient.heartRate < 60 || 
+      patient.temperature > 99.5 || 
+      patient.oxygenSat < 94 ||
+      patient.respiratoryRate > 20
+    ) {
+      return "warning"
+    } else {
+      return "stable"
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "stable": return "from-green-500 to-green-600"
+      case "warning": return "from-yellow-500 to-yellow-600"
+      case "critical": return "from-red-500 to-red-600"
+      default: return "from-gray-500 to-gray-600"
+    }
+  }
+
+  const filteredPatients = filter === "all" 
+    ? patients 
+    : patients.filter(patient => patient.status === filter)
+
+  return (
+    <div className="space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="glass-morphism rounded-3xl p-8 border border-white/30 shadow-2xl">
+        <div className="flex items-center space-x-4 mb-4">
+          <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl">
+            <Activity className="h-8 w-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent font-poppins">
+              Health Monitoring
+            </h1>
+            <p className="text-xl text-gray-600 font-medium">Real-time patient vital signs and monitoring</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-6 mt-6">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-green-700 font-semibold">{patients.filter(p => p.status === "stable").length} Stable</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="text-yellow-700 font-semibold">{patients.filter(p => p.status === "warning").length} Warning</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="text-red-700 font-semibold">{patients.filter(p => p.status === "critical").length} Critical</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Controls */}
+      <div className="flex space-x-4">
+        <button 
+          onClick={() => setFilter("all")}
+          className={`px-6 py-3 rounded-xl transition-all duration-300 ${
+            filter === "all" 
+              ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg" 
+              : "glass-morphism border border-white/30"
+          }`}
+        >
+          All Patients
+        </button>
+        <button 
+          onClick={() => setFilter("critical")}
+          className={`px-6 py-3 rounded-xl transition-all duration-300 ${
+            filter === "critical" 
+              ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg" 
+              : "glass-morphism border border-white/30"
+          }`}
+        >
+          Critical
+        </button>
+        <button 
+          onClick={() => setFilter("warning")}
+          className={`px-6 py-3 rounded-xl transition-all duration-300 ${
+            filter === "warning" 
+              ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg" 
+              : "glass-morphism border border-white/30"
+          }`}
+        >
+          Warning
+        </button>
+        <button 
+          onClick={() => setFilter("stable")}
+          className={`px-6 py-3 rounded-xl transition-all duration-300 ${
+            filter === "stable" 
+              ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg" 
+              : "glass-morphism border border-white/30"
+          }`}
+        >
+          Stable
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* Patient List */}
+        <div className="xl:col-span-2 glass-morphism rounded-3xl shadow-2xl border border-white/30 p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-poppins">Patient Monitoring</h2>
+          
+          <div className="space-y-4">
+            {filteredPatients.map((patient) => (
+              <div 
+                key={patient.id}
+                onClick={() => setSelectedPatient(patient)}
+                className={`glass-morphism rounded-xl p-4 border border-white/30 hover:shadow-xl transition-all duration-300 cursor-pointer ${
+                  selectedPatient?.id === patient.id ? "scale-105 shadow-xl" : "hover:scale-102"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${getStatusColor(patient.status)} flex items-center justify-center shadow-lg`}>
+                      <Activity className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{patient.patientName}</h3>
+                      <p className="text-sm text-gray-600">{patient.room}</p>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full bg-gradient-to-r ${getStatusColor(patient.status)} text-white text-sm font-medium capitalize`}>
+                    {patient.status}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Heart className="h-4 w-4 text-red-500" />
+                    <div>
+                      <div className="text-sm font-medium">{Math.round(patient.heartRate)} BPM</div>
+                      <div className="text-xs text-gray-500">Heart Rate</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Activity className="h-4 w-4 text-blue-500" />
+                    <div>
+                      <div className="text-sm font-medium">{patient.bloodPressure}</div>
+                      <div className="text-xs text-gray-500">Blood Pressure</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Thermometer className="h-4 w-4 text-orange-500" />
+                    <div>
+                      <div className="text-sm font-medium">{patient.temperature.toFixed(1)}°F</div>
+                      <div className="text-xs text-gray-500">Temperature</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Droplets className="h-4 w-4 text-cyan-500" />
+                    <div>
+                      <div className="text-sm font-medium">{Math.round(patient.oxygenSat)}%</div>
+                      <div className="text-xs text-gray-500">Oxygen Sat</div>
+                    </div>
+                  </div>
+                </div>\
