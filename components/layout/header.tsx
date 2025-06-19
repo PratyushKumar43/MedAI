@@ -1,9 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Bell, User, Mic, MicOff, Sparkles, Zap, Shield } from "lucide-react"
+import { Search, Bell, User, Mic, MicOff, Sparkles, Zap, Shield, LogOut, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/providers/auth-provider"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface HeaderProps {
   className?: string
@@ -14,6 +23,7 @@ export function Header({ className }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [notifications] = useState(5)
+  const { user, signOut } = useAuth()
 
   useEffect(() => {
     // Initialize time on client side to avoid hydration mismatch
@@ -25,6 +35,21 @@ export function Header({ className }: HeaderProps) {
   const toggleVoiceSearch = () => {
     setIsListening(!isListening)
     // Voice search implementation would go here
+  }
+
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      return `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+    }
+    return user?.email?.split('@')[0] || 'User'
+  }
+
+  const getUserRole = () => {
+    return user?.user_metadata?.role || 'Patient'
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
   }
 
   return (
@@ -123,24 +148,43 @@ export function Header({ className }: HeaderProps) {
                 </span>
               )}
             </Button>
-          </div>
-
-          {/* User Profile */}
-          <div className="flex items-center glass-morphism px-3 py-1.5 rounded-lg border border-white/30 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group">
-            <div className="relative mr-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
-                <User className="h-4 w-4 text-white" />
+          </div>          {/* User Profile */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center glass-morphism px-3 py-1.5 rounded-lg border border-white/30 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group">
+                <div className="relative mr-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border border-white"></div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-gray-900">{getUserDisplayName()}</div>
+                  <div className="text-xs text-gray-600 flex items-center">
+                    <Zap className="h-2 w-2 mr-1 text-yellow-500" />
+                    {getUserRole()}
+                  </div>
+                </div>
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border border-white"></div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-gray-900">Dr. Sarah</div>
-              <div className="text-xs text-gray-600 flex items-center">
-                <Zap className="h-2 w-2 mr-1 text-yellow-500" />
-                CMO
-              </div>
-            </div>
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

@@ -7,6 +7,7 @@ import { AIInsights } from "@/components/dashboard/ai-insights"
 import { RealTimeMonitor } from "@/components/dashboard/realtime-monitor"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 import { InteractiveStats } from "@/components/dashboard/interactive-stats"
+import { AuthRedirect } from "@/components/auth/auth-redirect"
 import { Sparkles, TrendingUp, Activity, Brain } from "lucide-react"
 
 export default function HomePage() {
@@ -97,32 +98,37 @@ export default function HomePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center p-12 rounded-3xl shadow-2xl border border-gray-200 bg-white">
-          <div className="text-8xl mb-6">🏥</div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">MedAI Pro Dashboard</h1>
-          <p className="text-gray-600 mb-8 text-lg">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 font-semibold"
-          >
-            <Activity className="h-5 w-5 mr-2 inline" />
-            Retry Connection
-          </button>
+      <>
+        <AuthRedirect />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center p-12 rounded-3xl shadow-2xl border border-gray-200 bg-white">
+            <div className="text-8xl mb-6">🏥</div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">MediOca Pro Dashboard</h1>
+            <p className="text-gray-600 mb-8 text-lg">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 font-semibold"
+            >
+              <Activity className="h-5 w-5 mr-2 inline" />
+              Retry Connection
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
   return (
-    <div className="space-y-8">
+    <>
+      <AuthRedirect />
+      <div className="space-y-8">
       {/* Hero Header */}
       <div className="relative bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-8 border border-gray-200 shadow-xl overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10"></div>
         <div className="relative z-10 flex justify-between items-center">
           <div>
             <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent mb-2">
-              Welcome to MedAI Pro
+              Welcome to MediOca Pro
             </h1>
             <p className="text-xl text-gray-600 font-medium">
               Revolutionary healthcare management powered by Advanced AI
@@ -182,5 +188,6 @@ export default function HomePage() {
         <QuickActions />
       </div>
     </div>
+    </>
   )
 }

@@ -2,7 +2,7 @@
 
 ## 🎉 Conversion Complete!
 
-Your MedApp has been successfully converted from a mock MCP server to a **Real MCP Server with actual AI integration**. Here's what has been implemented:
+Your MediOca has been successfully converted from a mock MCP server to a **Real MCP Server with actual AI integration**. Here's what has been implemented:
 
 ## ✅ What's New
 
@@ -171,7 +171,7 @@ GEMINI_API_KEY=your-gemini-key
 
 ## 🎊 Congratulations!
 
-Your MedApp now features **enterprise-grade AI-powered clinical decision support** with:
+Your MediOca now features **enterprise-grade AI-powered clinical decision support** with:
 - ✅ Real AI integration with multiple providers
 - ✅ Production-ready architecture and security
 - ✅ Comprehensive error handling and fallbacks

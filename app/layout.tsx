@@ -2,11 +2,9 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Poppins } from "next/font/google"
 import "./globals.css"
-import { Sidebar } from "@/components/layout/sidebar"
-import { Header } from "@/components/layout/header"
 import { Providers } from "@/components/providers"
-import { BackgroundEffects } from "@/components/ui/background-effects"
-import { ScrollToTop } from "@/components/ui/scroll-to-top"
+import { AuthProvider } from "@/providers/auth-provider"
+import { ConditionalLayout } from "@/components/layout/conditional-layout"
 
 const inter = Inter({ subsets: ["latin"] })
 const poppins = Poppins({
@@ -16,24 +14,39 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: "MedAI Pro - Revolutionary Healthcare Platform",
+  title: "MediOca - Advanced Healthcare Management Platform",
   description:
-    "AI-powered medical management with advanced analytics, predictive diagnostics, and professional healthcare solutions",
-  generator: 'v0.dev',
+    "MediOca: AI-powered medical management with advanced analytics, predictive diagnostics, and professional healthcare solutions",
+  generator: 'MediOca Healthcare Platform',
   icons: {
     icon: [
       {
-        url: '/placeholder-logo.png',
-        sizes: '32x32',
-        type: 'image/png',
+        url: '/favicon.ico',
+        sizes: '16x16',
+        type: 'image/x-icon',
       },
       {
-        url: '/placeholder-logo.svg',
-        type: 'image/svg+xml',
+        url: '/favicon.ico',
+        sizes: '32x32',
+        type: 'image/x-icon',
       }
     ],
-    shortcut: '/placeholder-logo.png',
-    apple: '/placeholder-logo.png',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+    other: [
+      {
+        rel: 'icon',
+        type: 'image/x-icon',
+        sizes: '16x16',
+        url: '/favicon.ico',
+      },
+      {
+        rel: 'icon',
+        type: 'image/x-icon',
+        sizes: '32x32',
+        url: '/favicon.ico',
+      },
+    ],
   },
 }
 
@@ -60,21 +73,13 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
-        <Providers>
-          <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-            <BackgroundEffects />
-            <Sidebar />
-            <div className="flex-1 flex flex-col overflow-hidden relative z-10 ml-64"> {/* Added ml-64 to account for fixed sidebar */}
-              <div className="sticky top-0 w-full z-50 px-2">
-                <Header /> {/* Removed margin-left to make header full width */}
-              </div>
-              <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 pt-32 scroll-smooth" id="main-content"> {/* Removed left padding */}
-                <div className="max-w-7xl mx-auto animate-fade-in-up mt-4">{children}</div>
-              </main>
-            </div>
-          </div>
-          <ScrollToTop />
-        </Providers>
+        <AuthProvider>
+          <Providers>
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
+          </Providers>
+        </AuthProvider>
       </body>
     </html>
   )

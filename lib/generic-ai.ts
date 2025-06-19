@@ -28,7 +28,7 @@ class GenericAIService {
       console.log("🤖 Generic AI: Processing medical query...")
 
       const prompt = `
-        You are MedAI, an advanced medical AI assistant for healthcare providers. Respond professionally and helpfully.
+        You are MediOca AI, an advanced medical AI assistant for healthcare providers. Respond professionally and helpfully.
         
         INSTRUCTIONS:
         - Treat all symptoms as important medical information
@@ -271,7 +271,7 @@ class GenericAIService {
           <div class="prescription">
             <div class="header">
               <h1>Medical Prescription</h1>
-              <p>MedAI Pro Healthcare</p>
+              <p>MediOca Pro Healthcare</p>
               <p>1234 Medical Center Drive, Healthcare City</p>
               <p>Phone: (555) 123-4567</p>
             </div>

@@ -168,7 +168,7 @@ const generatePrescriptionPDF = (patient: PatientDetails) => {
     <body>
         <div class="prescription-header">
             <h1>MEDICAL PRESCRIPTION</h1>
-            <p>MedApp Healthcare System</p>
+            <p>MediOca Healthcare System</p>
         </div>
         
         <div class="prescription-number">
@@ -232,7 +232,7 @@ const generatePrescriptionPDF = (patient: PatientDetails) => {
                 <div class="signature-line"></div>
                 <div class="doctor-info">
                     <p>Dr. [Doctor Name]</p>
-                    <p>MedApp Healthcare System</p>
+                    <p>MediOca Healthcare System</p>
                     <p>License #: [License Number]</p>
                 </div>
             </div>
@@ -240,7 +240,7 @@ const generatePrescriptionPDF = (patient: PatientDetails) => {
         
         <div class="footer">
             <p>This prescription was generated on ${currentDate}</p>
-            <p>MedApp Healthcare System - Prescription #${prescriptionNumber}</p>
+            <p>MediOca Healthcare System - Prescription #${prescriptionNumber}</p>
         </div>
         
         <script>
@@ -929,7 +929,7 @@ export default function PrescriptionsPage() {
             <div class="header">
                 <div class="header-content">
                     <div class="clinic-logo">🏥</div>
-                    <div class="clinic-info">MedApp Healthcare System</div>
+                    <div class="clinic-info">MediOca Healthcare System</div>
                     <div class="clinic-subtitle">Advanced Medical Care & Patient Management</div>
                     <div class="report-title">Patient Prescription Report</div>
                     <div class="report-date">${currentDate} at ${currentTime}</div>
@@ -1043,7 +1043,7 @@ export default function PrescriptionsPage() {
             <div class="footer">
                 <div class="footer-content">
                     <div class="footer-branding">
-                        MedApp Healthcare System
+                        MediOca Healthcare System
                     </div>
                     <div>Professional Medical Records Management</div>
                     <div class="report-id">Report ID: MR-${Date.now()}</div>

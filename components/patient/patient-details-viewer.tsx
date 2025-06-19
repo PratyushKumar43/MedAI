@@ -775,7 +775,7 @@ export function PatientDetailsViewer({
             <div class="header">
                 <div class="header-content">
                     <div class="clinic-logo"></div>
-                    <div class="clinic-info">MedApp Healthcare System</div>
+                    <div class="clinic-info">MediOca Healthcare System</div>
                     <div class="clinic-subtitle">Advanced Medical Care & Patient Management</div>
                     <div class="report-title">Comprehensive Patient Medical Report</div>
                     <div class="report-date">Generated on ${currentDate} at ${currentTime}</div>
@@ -1004,7 +1004,7 @@ export function PatientDetailsViewer({
             <div class="footer">
                 <div class="footer-content">
                     <div style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 10px;">
-                        MedApp Healthcare System
+                        MediOca Healthcare System
                     </div>
                     <div>Professional Medical Records Management</div>
                     <div class="report-id">Report ID: MR-${Date.now()}</div>

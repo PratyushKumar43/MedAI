@@ -2,7 +2,7 @@
 
 ## 🚀 Overview
 
-Your MedApp now features a **Real MCP (Model Context Protocol) Server** with actual AI integration, replacing the previous mock implementation. This provides genuine AI-powered clinical decision support.
+Your MediOca now features a **Real MCP (Model Context Protocol) Server** with actual AI integration, replacing the previous mock implementation. This provides genuine AI-powered clinical decision support.
 
 ## 📋 Prerequisites
 

@@ -102,14 +102,28 @@ export function Sidebar() {
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10 flex items-center space-x-4">
           <div className="relative">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-xl border border-white/30">
-              <Sparkles className="h-7 w-7 text-white animate-pulse" />
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-xl border border-white/30 transition-all duration-300 hover:scale-110 hover:rotate-6 cursor-pointer group">
+              <img 
+                src="/favicon.ico" 
+                alt="MediOca Logo" 
+                className="h-8 w-8 text-white transition-all duration-300 group-hover:scale-110"
+                onError={(e) => {
+                  // Fallback to emoji if logo doesn't load
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (fallback) {
+                    fallback.style.display = 'block';
+                  }
+                }}
+              />
+              <span className="text-2xl hidden">🏥</span>
             </div>
             <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-ping"></div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white font-poppins">MedAI Pro</h1>
-            <p className="text-blue-100 text-sm font-medium">Powered by AI</p>
+          <div className="transition-all duration-300 hover:scale-105">
+            <h1 className="text-2xl font-bold text-white font-poppins tracking-tight">MediOca</h1>
+            <p className="text-blue-100 text-sm font-medium opacity-90">Healthcare Platform</p>
           </div>
         </div>
 

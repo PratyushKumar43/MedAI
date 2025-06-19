@@ -1,4 +1,4 @@
--- Create tables for MedApp
+-- Create tables for MediOca
 
 -- Doctors table
 CREATE TABLE IF NOT EXISTS doctors (
@@ -69,11 +69,11 @@ CREATE INDEX IF NOT EXISTS idx_patients_email ON patients(email);
 
 -- Insert sample data
 INSERT INTO doctors (name, specialization, email, phone, experience) VALUES
-('Dr. Sarah Johnson', 'Cardiology', 'sarah.johnson@medapp.com', '+1-555-0101', 15),
-('Dr. Michael Chen', 'Pediatrics', 'michael.chen@medapp.com', '+1-555-0102', 12),
-('Dr. Emily Rodriguez', 'Dermatology', 'emily.rodriguez@medapp.com', '+1-555-0103', 8),
-('Dr. David Wilson', 'Orthopedics', 'david.wilson@medapp.com', '+1-555-0104', 20),
-('Dr. Lisa Thompson', 'Neurology', 'lisa.thompson@medapp.com', '+1-555-0105', 18)
+('Dr. Sarah Johnson', 'Cardiology', 'sarah.johnson@medioca.com', '+1-555-0101', 15),
+('Dr. Michael Chen', 'Pediatrics', 'michael.chen@medioca.com', '+1-555-0102', 12),
+('Dr. Emily Rodriguez', 'Dermatology', 'emily.rodriguez@medioca.com', '+1-555-0103', 8),
+('Dr. David Wilson', 'Orthopedics', 'david.wilson@medioca.com', '+1-555-0104', 20),
+('Dr. Lisa Thompson', 'Neurology', 'lisa.thompson@medioca.com', '+1-555-0105', 18)
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO patients (name, email, phone, date_of_birth, address, medical_history) VALUES
@@ -106,6 +106,6 @@ CROSS JOIN (
     ('Omeprazole', '20mg', 'Once daily before breakfast', '14 days', 'Take 30 minutes before eating')
 ) AS medications(medication, dosage, frequency, duration, instructions)
 WHERE p.email LIKE '%@email.com' 
-AND d.email LIKE '%@medapp.com'
+AND d.email LIKE '%@medioca.com'
 LIMIT 15
 ON CONFLICT DO NOTHING;
