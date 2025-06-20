@@ -1,12 +1,9 @@
 import { EventEmitter } from 'events'
-import OpenAI from 'openai'
-import Anthropic from '@anthropic-ai/sdk'
 import { v4 as uuidv4 } from 'uuid'
 import { genericAIService } from './generic-ai'
 
 // Real MCP Server with AI Integration
-export interface MCPSession {
-  id: string
+export interface MCPSession {  id: string
   patientId: string
   doctorId: string
   startTime: Date
@@ -15,7 +12,7 @@ export interface MCPSession {
   recommendations: MCPRecommendation[]
   isActive: boolean
   context: PatientContext
-  aiProvider: 'openai' | 'anthropic' | 'gemini'
+  aiProvider: 'gemini'
   confidence: number
 }
 
@@ -85,8 +82,6 @@ export interface AIPrescriptionResponse {
 
 export class RealMCPServer extends EventEmitter {
   private sessions = new Map<string, MCPSession>()
-  private openai: OpenAI | null = null
-  private anthropic: Anthropic | null = null
   private isConnected = false
   private activeConnections = new Set<WebSocket>()
 
@@ -97,34 +92,20 @@ export class RealMCPServer extends EventEmitter {
 
   private initializeAIProviders() {
     try {
-      // Initialize OpenAI
-      const openaiKey = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY
-      if (openaiKey) {
-        this.openai = new OpenAI({
-          apiKey: openaiKey,
-          dangerouslyAllowBrowser: true // Only for client-side usage
-        })
-        console.log('✅ OpenAI initialized')
+      // Using only Gemini via genericAIService
+      const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
+      if (geminiKey) {
+        console.log('✅ Gemini initialized via genericAIService')
+        this.isConnected = true
+      } else {
+        console.warn('⚠️ No Gemini API key found, falling back to mock mode')
+        console.warn('Add GEMINI_API_KEY to environment variables')
+        this.isConnected = false
       }
-
-      // Initialize Anthropic
-      const anthropicKey = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY
-      if (anthropicKey) {
-        this.anthropic = new Anthropic({
-          apiKey: anthropicKey,
-          dangerouslyAllowBrowser: true // Only for client-side usage
-        })
-        console.log('✅ Anthropic initialized')
-      }
-
-      this.isConnected = !!(this.openai || this.anthropic)
       
       if (this.isConnected) {
-        console.log('🚀 Real MCP Server initialized with AI providers')
+        console.log('🚀 Real MCP Server initialized with Gemini AI provider')
         this.emit('connected')
-      } else {
-        console.warn('⚠️ No AI API keys found, falling back to mock mode')
-        console.warn('Add OPENAI_API_KEY or ANTHROPIC_API_KEY to environment variables')
       }
     } catch (error) {
       console.error('❌ Failed to initialize AI providers:', error)
@@ -132,7 +113,7 @@ export class RealMCPServer extends EventEmitter {
     }
   }
 
-  async createSession(patientContext: PatientContext, aiProvider: 'openai' | 'anthropic' | 'gemini' = 'openai'): Promise<string> {
+  async createSession(patientContext: PatientContext, aiProvider: 'gemini' = 'gemini'): Promise<string> {
     const sessionId = uuidv4()
     
     const session: MCPSession = {
@@ -456,65 +437,20 @@ Format as JSON with the structure specified in the system prompt.`
       }
     }
   }
-
   private async callAIProvider(provider: string, messages: any[]): Promise<any> {
     switch (provider) {
-      case 'openai':
-        return this.callOpenAI(messages)
-      case 'anthropic':
-        return this.callAnthropic(messages)
       case 'gemini':
         return this.callGemini(messages)
       default:
-        throw new Error(`Unsupported AI provider: ${provider}`)
-    }
-  }
-
-  private async callOpenAI(messages: any[]): Promise<any> {
-    if (!this.openai) {
-      throw new Error('OpenAI not initialized - check API key')
-    }
-
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4',
-      messages,
-      temperature: 0.2, // Lower temperature for medical accuracy
-      max_tokens: 2500,
-      top_p: 0.9
-    })
-
-    return {
-      content: response.choices[0]?.message?.content || '',
-      usage: response.usage,
-      model: 'gpt-4'
-    }
-  }
-
-  private async callAnthropic(messages: any[]): Promise<any> {
-    if (!this.anthropic) {
-      throw new Error('Anthropic not initialized - check API key')
-    }    const systemMessage = messages.find(m => m.role === 'system')
-    const userMessages = messages.filter(m => m.role !== 'system')
-
-    const response = await this.anthropic.messages.create({
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: 2500,
-      temperature: 0.2,
-      system: systemMessage?.content || '',
-      messages: userMessages
-    })
-
-    return {
-      content: response.content[0]?.type === 'text' ? response.content[0].text : '',
-      usage: response.usage,
-      model: 'claude-3-sonnet'
+        console.warn(`Unsupported AI provider: ${provider}, falling back to Gemini`)
+        return this.callGemini(messages)
     }
   }  private async callGemini(messages: any[]): Promise<any> {
     try {
       const lastMessage = messages[messages.length - 1]
       const contextText = messages.slice(0, -1).map(m => m.content).join('\n\n')
       
-      // Use the existing generic AI service with proper medical context
+      // Enhanced medical context for Gemini
       const medicalContext = {
         patient: null,
         symptoms: [],
@@ -525,36 +461,78 @@ Format as JSON with the structure specified in the system prompt.`
         vital_signs: null
       }
       
+      console.log("Calling Gemini AI with medical context...")
+      console.log("Prompt length:", lastMessage.content.length)
+      
       const response = await genericAIService.chatWithAI(lastMessage.content, medicalContext)
       
-      return {
+      // Mock token usage since genericAIService doesn't return usage data
+      const estimatedTokens = {
+        prompt_tokens: Math.ceil(lastMessage.content.length / 4), // Rough estimate
+        completion_tokens: Math.ceil(response.length / 4),
+        total_tokens: Math.ceil((lastMessage.content.length + response.length) / 4)
+      }
+      
+      console.log("Gemini response received, estimated tokens:", estimatedTokens)
+        return {
         content: response,
-        usage: { prompt_tokens: 0, completion_tokens: 0 },
-        model: 'gemini-pro'
+        usage: estimatedTokens,
+        model: 'gemini-2.0-flash'
       }
     } catch (error) {
       console.error('Gemini API error:', error)
-      throw new Error('Gemini API call failed')
+      throw new Error(`Gemini API call failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
-
   private parseAIResponse(content: string): any {
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0])
-      }
+      // Enhanced JSON extraction for medical responses
+      console.log("Parsing AI response length:", content.length)
       
+      // Method 1: Direct JSON parsing
+      if (content.trim().startsWith('{') && content.trim().endsWith('}')) {
+        return JSON.parse(content.trim())
+      }
+
+      // Method 2: Extract from code blocks
+      const codeBlockMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i)
+      if (codeBlockMatch) {
+        return JSON.parse(codeBlockMatch[1])
+      }
+
+      // Method 3: Find largest JSON object
+      const jsonMatches = content.match(/\{[\s\S]*?\}/g)
+      if (jsonMatches && jsonMatches.length > 0) {
+        let largestValidJson = null
+        let largestSize = 0
+
+        for (const match of jsonMatches) {
+          try {
+            const parsed = JSON.parse(match)
+            if (match.length > largestSize) {
+              largestValidJson = parsed
+              largestSize = match.length
+            }
+          } catch (e) {
+            // Continue to next match
+          }
+        }
+
+        if (largestValidJson) {
+          return largestValidJson
+        }
+      }
+
       // Fallback: create structured response from text
+      console.warn("Creating fallback structured response from text")
       return {
         analysis: content,
-        confidence: 0.7,
-        clinical_reasoning: 'AI response parsing fallback - manual review recommended',
+        confidence: 0.6,
+        clinical_reasoning: 'Parsed from unstructured AI response - manual review recommended',
         recommendations: [
           {
             category: 'clinical_review',
-            action: 'Manual review of AI response required',
+            action: 'Review AI response for clinical insights',
             priority: 'medium'
           }
         ]
@@ -563,7 +541,7 @@ Format as JSON with the structure specified in the system prompt.`
       console.error('Failed to parse AI response:', error)
       return {
         analysis: content,
-        confidence: 0.5,
+        confidence: 0.4,
         clinical_reasoning: 'Failed to parse structured response - manual interpretation required',
         recommendations: [
           {
@@ -684,12 +662,9 @@ Format as JSON with the structure specified in the system prompt.`
   getActiveSessionCount(): number {
     return this.getActiveSessions().length
   }
-
   getAIProviderStatus(): { [key: string]: boolean } {
     return {
-      openai: !!this.openai,
-      anthropic: !!this.anthropic,
-      gemini: true // Gemini uses existing service
+      gemini: !!(process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY)
     }
   }
 

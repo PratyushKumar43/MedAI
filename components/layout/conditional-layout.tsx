@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
 import { BackgroundEffects } from "@/components/ui/background-effects"
 import { ScrollToTop } from "@/components/ui/scroll-to-top"
+import { FloatingHomeButton } from "@/components/layout/floating-home-button"
 import { Loader2 } from 'lucide-react'
 
 interface ConditionalLayoutProps {
@@ -16,8 +17,9 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const { user, loading } = useAuth()
   const pathname = usePathname()
   
-  // Check if current path is an auth route
+  // Check if current path is an auth route or landing page
   const isAuthRoute = pathname?.startsWith('/auth')
+  const isLandingPage = pathname === '/'
 
   // Show loading spinner while checking auth status
   if (loading) {
@@ -30,9 +32,17 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
       </div>
     )
   }
-
-  // If user is not authenticated and not on auth route, show auth layout
+  // If user is not authenticated and not on auth route, show minimal layout
   if (!user && !isAuthRoute) {
+    return (
+      <div className="min-h-screen">
+        {children}
+      </div>
+    )
+  }
+
+  // If on landing page, always show minimal layout (no sidebar)
+  if (isLandingPage) {
     return (
       <div className="min-h-screen">
         {children}
@@ -53,17 +63,17 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
           </div>
           <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 pt-32 scroll-smooth" id="main-content">
             <div className="max-w-7xl mx-auto animate-fade-in-up mt-4">{children}</div>
-          </main>
-        </div>
+          </main>        </div>
         <ScrollToTop />
+        <FloatingHomeButton />
       </div>
     )
   }
-
   // For auth routes, show minimal layout
   return (
     <div className="min-h-screen">
       {children}
+      <FloatingHomeButton />
     </div>
   )
 }

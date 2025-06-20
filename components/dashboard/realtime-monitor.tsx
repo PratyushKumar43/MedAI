@@ -3,6 +3,13 @@
 import { useState, useEffect } from "react"
 import { Activity, Heart, Thermometer, Droplets, Zap, AlertTriangle, Pill } from "lucide-react"
 
+// Utility function to safely convert values to numbers
+const safeNumber = (value: any, fallback: number): number => {
+  if (typeof value === 'number' && !isNaN(value)) return value;
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? fallback : parsed;
+}
+
 export function RealTimeMonitor() {
   const [vitals, setVitals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,7 +38,7 @@ export function RealTimeMonitor() {
           
           // Determine status based on vitals
           let status = "stable";
-          const heartRate = patient.vital_signs?.heart_rate || 70 + Math.floor(Math.random() * 30);
+          const heartRate = safeNumber(patient.vital_signs?.heart_rate, 70 + Math.floor(Math.random() * 30));
           const oxygenSat = 90 + Math.floor(Math.random() * 10);
           
           if (heartRate > 100 || patient.vital_signs?.blood_pressure?.startsWith("16") || oxygenSat < 92) {
@@ -45,12 +52,12 @@ export function RealTimeMonitor() {
             id: patient.id,
             patientName: patient.name,
             room: `${roomType}-${roomNumber}`,
-            heartRate: patient.vital_signs?.heart_rate || heartRate,
+            heartRate: heartRate,
             bloodPressure: patient.vital_signs?.blood_pressure || "120/80",
-            temperature: patient.vital_signs?.temperature || 98.6,
+            temperature: safeNumber(patient.vital_signs?.temperature, 98.6),
             oxygenSat: oxygenSat,
             status: status,
-            bmi: patient.vital_signs?.bmi || 24.5,
+            bmi: safeNumber(patient.vital_signs?.bmi, 24.5),
             medications: patient.current_medications || [],
             diagnosis: patient.diagnosis || [],
             allergies: patient.allergies || []
@@ -320,11 +327,10 @@ export function RealTimeMonitor() {
                 <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs text-amber-700 mb-1">BMI</p>
-                      <p className="text-xl font-bold text-amber-600">{vital.bmi?.toFixed(1) || "24.5"}</p>
+                      <p className="text-xs text-amber-700 mb-1">BMI</p>                      <p className="text-xl font-bold text-amber-600">{vital.bmi.toFixed(1)}</p>
                       <p className="text-xs text-amber-700">
                         {(() => {
-                          const bmi = parseFloat(vital.bmi?.toFixed(1) || "24.5");
+                          const bmi = vital.bmi;
                           if (bmi < 18.5) return "Underweight";
                           if (bmi < 25) return "Normal";
                           if (bmi < 30) return "Overweight";

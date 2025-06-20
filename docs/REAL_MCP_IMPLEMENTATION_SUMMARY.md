@@ -7,10 +7,8 @@ Your MediOca has been successfully converted from a mock MCP server to a **Real 
 ## ✅ What's New
 
 ### 1. Real AI Integration
-- **OpenAI GPT-4**: Advanced medical reasoning and analysis
-- **Anthropic Claude**: Safety-focused clinical recommendations
-- **Google Gemini**: Fast, cost-effective AI responses
-- **Multi-provider fallback**: Automatic switching if one provider fails
+- **Google Gemini**: Fast, cost-effective AI responses with medical knowledge
+- **Single provider focus**: Streamlined AI integration with Gemini as the primary provider
 
 ### 2. Enhanced Clinical Features
 - **Real-time symptom analysis** with AI-powered differential diagnosis
@@ -72,15 +70,13 @@ const response = await realMCPServer.addSymptoms(sessionId, [
 ### 1. Configure API Keys
 Add to `.env.local`:
 ```env
-OPENAI_API_KEY=your-openai-key
-ANTHROPIC_API_KEY=your-anthropic-key
 GEMINI_API_KEY=your-gemini-key
 ```
 
 ### 2. Access Real MCP Dashboard
 1. Go to any patient details page
 2. Click "MCP AI Assistant" tab
-3. Select AI provider (OpenAI, Anthropic, or Gemini)
+3. AI provider is automatically set to Gemini
 4. Click "Start Real AI Session"
 
 ### 3. Clinical Workflow
@@ -132,14 +128,12 @@ GEMINI_API_KEY=your-gemini-key
 ## 💰 Cost Management
 
 ### API Costs (Approximate)
-- **OpenAI GPT-4**: $0.03 per 1K tokens (~$0.10-0.30 per session)
-- **Anthropic Claude**: $0.015 per 1K tokens (~$0.05-0.15 per session)
-- **Google Gemini**: Free tier available, then $0.001 per 1K tokens
+- **Google Gemini**: Free tier available, then $0.001 per 1K tokens (~$0.01-0.05 per session)
 
 ### Optimization Features
 - **Intelligent caching**: Reduces redundant API calls
 - **Request batching**: Combines multiple queries
-- **Provider selection**: Routes to most cost-effective AI
+- **Cost-effective provider**: Uses Gemini for optimal cost-to-performance ratio
 - **Usage monitoring**: Track and alert on costs
 
 ## 🔄 Migration Notes

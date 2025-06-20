@@ -1,10 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
-// Using Gemini API but presenting as Generic AI
-const API_KEY = "AIzaSyADq8WXDvH4dgbpjWIpLYOieYte9SFywOA"
+// Using Gemini API for prescription generation
+const API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
 
 if (!API_KEY) {
-  throw new Error("Missing Generic AI API key")
+  throw new Error("Missing Gemini API key - Please set GEMINI_API_KEY in environment variables")
 }
 
 const genAI = new GoogleGenerativeAI(API_KEY)
@@ -19,8 +19,15 @@ interface MedicalContext {
   vital_signs?: any
 }
 
-class GenericAIService {
-  private model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }) // Changed from gemini-1.5-flash to standard model
+class GenericAIService {  private model = genAI.getGenerativeModel({ 
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      temperature: 0.2, // Lower temperature for medical accuracy
+      topP: 0.8,
+      topK: 40,
+      maxOutputTokens: 2048,
+    },
+  })
 
   // Enhanced chat with medical context
   async chatWithAI(message: string, context?: MedicalContext): Promise<string> {
@@ -114,59 +121,26 @@ class GenericAIService {
         
         IMPORTANT: Return ONLY valid JSON. Do not include any additional text, explanation, or markdown formatting.
       `
-      
-      console.log("Sending prompt to AI model...")
+        console.log("Sending prompt to AI model...")
       const result = await this.model.generateContent(prompt)
       const response = await result.response
       const responseText = response.text()
       
-      console.log("Received AI response length:", responseText.length)
-      console.log("Response preview:", responseText.substring(0, 100) + "...")
-      
-      try {
-        // Try to parse the response as JSON
-        const jsonStart = responseText.indexOf('{')
-        const jsonEnd = responseText.lastIndexOf('}') + 1
-        
-        if (jsonStart >= 0 && jsonEnd > jsonStart) {
-          const jsonText = responseText.substring(jsonStart, jsonEnd)
-          console.log("Extracted JSON length:", jsonText.length)
-          
-          try {
-            const parsedJson = JSON.parse(jsonText)
-            console.log("Successfully parsed JSON response")
-            
-            // Ensure the medications array exists and has at least one item
-            if (!parsedJson.medications || !Array.isArray(parsedJson.medications) || parsedJson.medications.length === 0) {
-              console.warn("AI response missing medications array or empty array")
-              throw new Error("Invalid medications data in AI response")
-            }
-            
-            // Validate medications have required fields
-            for (const med of parsedJson.medications) {
-              if (!med.name || !med.dosage || !med.frequency || !med.duration) {
-                console.warn("Medication missing required fields:", med)
-              }
-              
-              // Ensure arrays exist even if empty
-              med.warnings = Array.isArray(med.warnings) ? med.warnings : []
-              med.interactions = Array.isArray(med.interactions) ? med.interactions : []
-            }
-            
-            return parsedJson
-          } catch (parseError) {
-            console.error("JSON parse error:", parseError)
-            console.error("JSON text that failed to parse:", jsonText)
-            throw parseError
-          }
-        } else {
-          console.error("Could not find valid JSON markers in response")
-          throw new Error("No valid JSON found in AI response")
-        }
-      } catch (jsonError) {
-        console.error("Failed to process AI response as JSON:", jsonError)
-        throw jsonError
+      // Log token usage if available
+      const usage = await response.usageMetadata
+      if (usage) {
+        console.log("Token usage:", {
+          promptTokens: usage.promptTokenCount,
+          candidatesTokens: usage.candidatesTokenCount,
+          totalTokens: usage.totalTokenCount
+        })
       }
+      
+      console.log("Received AI response length:", responseText.length)
+      console.log("Response preview:", responseText.substring(0, 200) + "...")
+      
+      // Enhanced JSON extraction and parsing
+      return this.parseJSONResponse(responseText)
     } catch (error) {
       console.error("❌ Generic AI prescription generation error:", error)
       
@@ -304,8 +278,92 @@ class GenericAIService {
             </div>
           </div>
         </body>
-        </html>
-      `
+        </html>      `
+    }
+  }
+
+  // Enhanced JSON parsing method
+  private parseJSONResponse(responseText: string): any {
+    try {
+      // Method 1: Try direct JSON parsing if response is pure JSON
+      if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
+        const parsed = JSON.parse(responseText.trim())
+        return this.validateAndNormalizePrescriptionData(parsed)
+      }
+
+      // Method 2: Extract JSON from markdown code blocks
+      const codeBlockMatch = responseText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i)
+      if (codeBlockMatch) {
+        const jsonText = codeBlockMatch[1]
+        const parsed = JSON.parse(jsonText)
+        return this.validateAndNormalizePrescriptionData(parsed)
+      }
+
+      // Method 3: Find JSON objects in text
+      const jsonMatches = responseText.match(/\{[\s\S]*?\}/g)
+      if (jsonMatches && jsonMatches.length > 0) {
+        // Try parsing each match, use the largest valid one
+        let largestValidJson = null
+        let largestSize = 0
+
+        for (const match of jsonMatches) {
+          try {
+            const parsed = JSON.parse(match)
+            if (match.length > largestSize && parsed.medications) {
+              largestValidJson = parsed
+              largestSize = match.length
+            }
+          } catch (e) {
+            // Continue to next match
+          }
+        }
+
+        if (largestValidJson) {
+          return this.validateAndNormalizePrescriptionData(largestValidJson)
+        }
+      }
+
+      // Method 4: Last resort - create structured response from text
+      console.warn("Could not extract valid JSON, creating fallback structure")
+      throw new Error("No valid JSON found in AI response")
+
+    } catch (error) {
+      console.error("JSON parsing failed:", error)
+      throw error
+    }
+  }
+
+  // Validate and normalize prescription data
+  private validateAndNormalizePrescriptionData(data: any): any {
+    // Ensure required structure exists
+    if (!data.medications || !Array.isArray(data.medications)) {
+      throw new Error("Invalid medications array in AI response")
+    }
+
+    // Validate and normalize each medication
+    data.medications = data.medications.map((med: any) => ({
+      name: med.name || "Unknown medication",
+      generic_name: med.generic_name || med.name || "Unknown",
+      dosage: med.dosage || "As prescribed",
+      frequency: med.frequency || "As directed",
+      duration: med.duration || "As prescribed",
+      route: med.route || "Oral",
+      instructions: med.instructions || "Take as directed",
+      warnings: Array.isArray(med.warnings) ? med.warnings : [],
+      interactions: Array.isArray(med.interactions) ? med.interactions : [],
+      cost_estimate: med.cost_estimate || "Contact pharmacy"
+    }))
+
+    // Ensure other required fields exist
+    return {
+      medications: data.medications,
+      reasoning: data.reasoning || "AI-generated prescription recommendation",
+      confidence_score: data.confidence_score || 75,
+      alternative_treatments: Array.isArray(data.alternative_treatments) ? data.alternative_treatments : [],
+      follow_up_recommendations: Array.isArray(data.follow_up_recommendations) ? data.follow_up_recommendations : [],
+      red_flags: Array.isArray(data.red_flags) ? data.red_flags : [],
+      drug_interactions: Array.isArray(data.drug_interactions) ? data.drug_interactions : [],
+      contraindications: Array.isArray(data.contraindications) ? data.contraindications : []
     }
   }
 }

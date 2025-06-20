@@ -6,11 +6,16 @@ import { Providers } from "@/components/providers"
 import { AuthProvider } from "@/providers/auth-provider"
 import { ConditionalLayout } from "@/components/layout/conditional-layout"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap',
+  variable: '--font-inter'
+})
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-poppins",
+  display: 'swap'
 })
 
 export const metadata: Metadata = {
@@ -56,7 +61,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.className} ${poppins.variable} scroll-smooth`}>
+    <html lang="en" className={`${inter.variable} ${poppins.variable} scroll-smooth`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -72,7 +77,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <AuthProvider>
           <Providers>
             <ConditionalLayout>

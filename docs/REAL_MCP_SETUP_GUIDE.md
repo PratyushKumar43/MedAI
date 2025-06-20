@@ -8,24 +8,12 @@ Your MediOca now features a **Real MCP (Model Context Protocol) Server** with ac
 
 ### 1. Install Dependencies
 ```bash
-npm install @anthropic-ai/sdk openai @modelcontextprotocol/sdk ws uuid --legacy-peer-deps
+npm install @google/generative-ai @modelcontextprotocol/sdk ws uuid --legacy-peer-deps
 ```
 
 ### 2. API Keys Required
 
-#### OpenAI (GPT-4) - Recommended
-1. Visit: https://platform.openai.com/api-keys
-2. Create an account and add billing information
-3. Generate an API key
-4. Copy for environment variables
-
-#### Anthropic (Claude) - Alternative
-1. Visit: https://console.anthropic.com/
-2. Create account and request API access
-3. Generate API key
-4. Copy for environment variables
-
-#### Google Gemini - Fallback
+#### Google Gemini - Primary AI Provider
 1. Visit: https://makersuite.google.com/app/apikey
 2. Create API key (free tier available)
 3. Copy for environment variables
@@ -36,20 +24,12 @@ npm install @anthropic-ai/sdk openai @modelcontextprotocol/sdk ws uuid --legacy-
 Create/update `.env.local`:
 
 ```env
-# Primary AI Provider (OpenAI - Recommended)
-OPENAI_API_KEY=sk-your-openai-key-here
-NEXT_PUBLIC_OPENAI_API_KEY=sk-your-openai-key-here
-
-# Alternative AI Provider (Anthropic)
-ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
-NEXT_PUBLIC_ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
-
-# Fallback AI Provider (Gemini)
+# Primary AI Provider (Gemini - Only supported provider)
 GEMINI_API_KEY=your-gemini-key-here
 NEXT_PUBLIC_GEMINI_API_KEY=your-gemini-key-here
 
 # Optional Configuration
-DEFAULT_AI_PROVIDER=openai
+DEFAULT_AI_PROVIDER=gemini
 NODE_ENV=development
 ```
 
@@ -65,9 +45,7 @@ NODE_ENV=development
 - **Clinical Reasoning**: Detailed AI explanations
 
 ### Multi-Provider AI Support
-- **OpenAI GPT-4**: Advanced medical reasoning
-- **Anthropic Claude**: Safety-focused responses
-- **Google Gemini**: Fast, cost-effective analysis
+- **Google Gemini**: Fast, cost-effective AI analysis with medical knowledge
 
 ### Safety & Reliability
 - **Fallback Mode**: Works without API keys (mock responses)
@@ -83,9 +61,9 @@ NODE_ENV=development
 - Real MCP dashboard will be available
 
 ### 2. Initialize AI Session
-1. Select preferred AI provider (OpenAI, Anthropic, or Gemini)
+1. AI provider is automatically set to Gemini
 2. Click "Start Real AI Session"
-3. System initializes with patient context
+3. System initializes with patient context using Gemini AI
 
 ### 3. Clinical Workflow
 1. **Add Symptoms**: Enter patient symptoms for AI analysis
@@ -120,7 +98,7 @@ Each AI response includes:
 ```env
 # Production environment
 NODE_ENV=production
-OPENAI_API_KEY=your-production-key
+GEMINI_API_KEY=your-production-key
 # Remove NEXT_PUBLIC_ prefixes and use server-side proxy
 ```
 
@@ -133,9 +111,7 @@ OPENAI_API_KEY=your-production-key
 - Set usage alerts
 
 ### Cost Management
-- **OpenAI GPT-4**: ~$0.03 per 1K tokens
-- **Anthropic Claude**: ~$0.015 per 1K tokens  
-- **Google Gemini**: Free tier available
+- **Google Gemini**: Free tier available, then very low cost at ~$0.001 per 1K tokens
 
 ### Performance Metrics
 - Average response time: 2-5 seconds
@@ -148,7 +124,7 @@ OPENAI_API_KEY=your-production-key
 
 #### 1. API Key Not Working
 ```
-Error: OpenAI not initialized
+Error: Gemini API key not configured
 ```
 **Solution**: 
 - Check API key format
@@ -221,7 +197,7 @@ System automatically provides:
 ## 🎯 Best Practices
 
 ### Development
-1. **Start with one provider** (OpenAI recommended)
+1. **Start with Gemini provider** (only supported provider)
 2. **Test thoroughly** with mock data
 3. **Monitor costs** during development
 4. **Validate all responses** manually
@@ -240,8 +216,6 @@ System automatically provides:
 
 ## 📚 Additional Resources
 
-- [OpenAI API Documentation](https://platform.openai.com/docs)
-- [Anthropic Claude API](https://docs.anthropic.com/)
 - [Google Gemini API](https://ai.google.dev/)
 - [MCP Protocol Specification](https://modelcontextprotocol.io/)
 

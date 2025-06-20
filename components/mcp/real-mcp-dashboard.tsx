@@ -22,7 +22,7 @@ export function MCPDashboard({ patient, doctorId, onPrescriptionGenerated }: MCP
   const [loading, setLoading] = useState(false)
   const [newSymptom, setNewSymptom] = useState("")
   const [diagnosis, setDiagnosis] = useState("")
-  const [aiProvider, setAIProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai')
+  const [aiProvider, setAIProvider] = useState<'gemini'>('gemini')
   const [connectionStatus, setConnectionStatus] = useState(false)
   const [aiProviderStatus, setAIProviderStatus] = useState<{ [key: string]: boolean }>({})
 
@@ -191,13 +191,12 @@ export function MCPDashboard({ patient, doctorId, onPrescriptionGenerated }: MCP
             <Brain className="h-5 w-5" />
             <span>AI Provider Status</span>
           </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
+        </CardHeader>        <CardContent>
+          <div className="flex items-center space-x-2">
             {Object.entries(aiProviderStatus).map(([provider, status]) => (
               <div key={provider} className="flex items-center space-x-2">
                 <div className={`w-2 h-2 rounded-full ${status ? 'bg-green-500' : 'bg-red-500'}`} />
-                <span className="text-sm capitalize">{provider}</span>
+                <span className="text-sm capitalize">{provider === 'gemini' ? '✨ Gemini AI' : provider}</span>
                 <Badge variant={status ? 'default' : 'secondary'}>
                   {status ? 'Active' : 'Inactive'}
                 </Badge>
@@ -216,25 +215,19 @@ export function MCPDashboard({ patient, doctorId, onPrescriptionGenerated }: MCP
               <span>Initialize AI Session</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* AI Provider Selection */}
+          <CardContent className="space-y-4">            {/* AI Provider Selection */}
             <div>
-              <label className="block text-sm font-medium mb-2">Select AI Provider</label>
+              <label className="block text-sm font-medium mb-2">AI Provider</label>
               <div className="flex space-x-2">
-                {(['openai', 'anthropic', 'gemini'] as const).map((provider) => (
-                  <Button
-                    key={provider}
-                    variant={aiProvider === provider ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setAIProvider(provider)}
-                    disabled={loading}
-                  >
-                    {provider === 'openai' && '🤖 GPT-4'}
-                    {provider === 'anthropic' && '🧠 Claude'}
-                    {provider === 'gemini' && '✨ Gemini'}
-                  </Button>
-                ))}
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled
+                >
+                  ✨ Gemini (Active)
+                </Button>
               </div>
+              <p className="text-xs text-gray-500 mt-1">Using Google Gemini AI for prescription generation</p>
             </div>
 
             <Button 

@@ -20,22 +20,21 @@ import {
 import { useState } from "react"
 
 const navigation = [
-  { name: "AI Dashboard", href: "/", icon: Home, color: "text-blue-600", gradient: "from-blue-500 to-cyan-500" },
   {
-    name: "Generic AI",
-    href: "/ai-diagnostics",
+    name: "AI Dashboard",
+    href: "/AI-dashboard",
     icon: Brain,
     color: "text-purple-600",
     badge: "AI",
     gradient: "from-purple-500 to-pink-500",
   },
   {
-    name: "Telemedicine",
-    href: "/telemedicine",
-    icon: Video,
-    color: "text-green-600",
-    badge: "Live",
-    gradient: "from-green-500 to-emerald-500",
+    name: "AI Diagnostics",
+    href: "/ai-diagnostics",
+    icon: UserCheck,
+    color: "text-purple-600",
+    badge: "AI",
+    gradient: "from-purple-500 to-pink-500",
   },
   {
     name: "Smart Chat",
