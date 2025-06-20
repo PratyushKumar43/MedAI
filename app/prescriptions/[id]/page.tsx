@@ -236,8 +236,8 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
       </div>
     )
   }
-
   const medicationDetails = prescription.medication_details || {}
+
   return (
     <div className="page-content">
       <div className="container mx-auto p-6">
@@ -267,17 +267,17 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
               Edit
             </Button>
           </div>
-        </div>
-
-        {viewMode === 'view' ? (
+        </div>        {viewMode === 'view' ? (
           <PrescriptionPDFView prescription={prescription} />
         ) : (
-          {prescription.is_ai_generated && (
-            <Badge className="ml-4 bg-blue-500">AI Generated</Badge>
-          )}
-        </div>
+          <>
+            <div>
+              {prescription.is_ai_generated && (
+                <Badge className="ml-4 bg-blue-500">AI Generated</Badge>
+              )}
+            </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
@@ -456,10 +456,10 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving} className="bg-green-600 hover:bg-green-700">
-            <Save className="mr-2 h-4 w-4" />
-            {saving ? "Saving..." : "Save Changes"}
+            <Save className="mr-2 h-4 w-4" />            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
+          </>
         )}
       </div>
     </div>
