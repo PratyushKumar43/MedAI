@@ -29,14 +29,6 @@ const navigation = [
     gradient: "from-purple-500 to-pink-500",
   },
   {
-    name: "AI Diagnostics",
-    href: "/ai-diagnostics",
-    icon: UserCheck,
-    color: "text-purple-600",
-    badge: "AI",
-    gradient: "from-purple-500 to-pink-500",
-  },
-  {
     name: "Smart Chat",
     href: "/chat",
     icon: MessageSquare,

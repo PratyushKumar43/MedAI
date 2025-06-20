@@ -1,0 +1,69 @@
+/* Print styles for prescription PDF */
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+  
+  .print\:rounded-none {
+    border-radius: 0 !important;
+  }
+  
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  .prescription-print-container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+  
+  /* Ensure proper page breaks */
+  .prescription-print-container {
+    page-break-inside: avoid;
+  }
+  
+  /* Hide unnecessary elements during print */
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Ensure text is readable */
+  * {
+    color: black !important;
+    background: white !important;
+  }
+  
+  /* Preserve important colors for warnings */
+  .text-red-700,
+  .text-red-800 {
+    color: #dc2626 !important;
+  }
+  
+  .text-blue-900 {
+    color: #1e3a8a !important;
+  }
+  
+  .bg-red-50 {
+    background-color: #fef2f2 !important;
+  }
+  
+  .bg-yellow-50 {
+    background-color: #fffbeb !important;
+  }
+  
+  .border-red-500 {
+    border-color: #ef4444 !important;
+  }
+  
+  .border-yellow-400 {
+    border-color: #facc15 !important;
+  }
+}

@@ -1,16 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Brain, CheckCircle, AlertTriangle, Pill, User, Stethoscope, Edit3, Save } from "lucide-react"
+import { ArrowLeft, CheckCircle, Pill, User, Stethoscope, Edit3, Save, Plus, Trash2, Brain, AlertTriangle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import type { PatientDetails, AIPrescriptionResponse } from "@/types/patient-details"
-import { genericAIService } from "@/lib/generic-ai"
-import { mcpServer } from "@/lib/mcp-server"
+import { Badge } from "@/components/ui/badge"
+import type { PatientDetails } from "@/types/patient-details"
 import { apiService } from "@/lib/api"
 
 interface PrescriptionWorkflowProps {
@@ -19,42 +17,39 @@ interface PrescriptionWorkflowProps {
   onCancel: () => void
 }
 
-interface GeneratedPrescription {
+interface ManualPrescription {
   medication: string
   dosage: string
   frequency: string
   duration: string
   instructions: string
-  warnings: string[]
-  confidence: number
+  confidence?: number
+  warnings?: string[]
 }
 
 export function PrescriptionWorkflow({ patient, onComplete, onCancel }: PrescriptionWorkflowProps) {
-  const [currentStep, setCurrentStep] = useState<"symptoms" | "generating" | "review" | "editing" | "saving">(
-    "symptoms",
-  )
+  const [currentStep, setCurrentStep] = useState<"entry" | "review" | "saving">("entry")
   const [symptoms, setSymptoms] = useState("")
   const [additionalNotes, setAdditionalNotes] = useState("")
-  const [generatedPrescriptions, setGeneratedPrescriptions] = useState<GeneratedPrescription[]>([])
-  const [editingPrescriptions, setEditingPrescriptions] = useState<GeneratedPrescription[]>([])
+  const [prescriptions, setPrescriptions] = useState<ManualPrescription[]>([
+    { medication: "", dosage: "", frequency: "", duration: "", instructions: "" }
+  ])
   const [loading, setLoading] = useState(false)
-  const [aiReasoning, setAiReasoning] = useState("")
-  const [mcpInitialized, setMcpInitialized] = useState(false)
   const [doctors, setDoctors] = useState<any[]>([])
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>("")
-
+  const [aiReasoning, setAiReasoning] = useState("")
+  const [editingPrescriptions, setEditingPrescriptions] = useState<ManualPrescription[]>([])
+  
   useEffect(() => {
-    // Fetch doctors and initialize MCP
+    // Fetch doctors
     const initialize = async () => {
       try {
-        // Get available doctors
         const { data: doctorsData } = await apiService.getDoctors()
         setDoctors(doctorsData || [])
         
         // Set a default doctor if available
         if (doctorsData && doctorsData.length > 0) {
           setSelectedDoctorId(doctorsData[0].id)
-          await initializeMCP(doctorsData[0].id)
         } else {
           console.error("No doctors available in the system")
           alert("No doctors available. Please add a doctor first.")
@@ -65,109 +60,96 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
     }
     
     initialize()
-    
-    return () => {
-      if (mcpServer.isSessionActive) {
-        mcpServer.endSession()
-      }
-    }
   }, [])
+  const handleAddPrescription = () => {
+    setPrescriptions([
+      ...prescriptions,
+      { medication: "", dosage: "", frequency: "", duration: "", instructions: "" }
+    ])
+  }
 
-  const initializeMCP = async (doctorId: string) => {
-    try {
-      await mcpServer.initializeSession(patient.id, doctorId)
-      setMcpInitialized(true)
-      console.log("✅ MCP Server initialized for prescription workflow")
-    } catch (error) {
-      console.error("❌ MCP initialization failed:", error)
+  const handleRemovePrescription = (index: number) => {
+    if (prescriptions.length > 1) {
+      setPrescriptions(prescriptions.filter((_, i) => i !== index))
     }
   }
 
+  const handleEditPrescription = (index: number, field: string, value: string) => {
+    const updated = [...prescriptions]
+    updated[index] = { ...updated[index], [field]: value }
+    setPrescriptions(updated)
+  }
+
   const handleGeneratePrescription = async () => {
-    if (!symptoms.trim()) {
-      alert("Please enter patient symptoms")
-      return
-    }
-
+    if (!symptoms.trim() || !selectedDoctorId) return
+    
     setLoading(true)
-    setCurrentStep("generating")
-
+    setCurrentStep("review")
+    
     try {
-      // Step 1: Add symptoms to MCP context
-      const symptomsList = symptoms
-        .split(",")
-        .map((s) => s.trim())
-        .filter((s) => s)
-      mcpServer.addSymptoms(symptomsList)
-
-      // Step 2: Generate AI prescription recommendations
-      const prescriptionRequest = {
-        patient_id: patient.id,
-        symptoms: symptomsList,
-        diagnosis: patient.diagnosis.join(", "),
-        severity: "moderate" as const,
-        patient_history: patient.medical_history || "",
-        allergies: patient.allergies,
-        current_medications: patient.current_medications,
-        vital_signs: patient.vital_signs,
-      }
-
-      const aiResponse = await genericAIService.generatePrescriptionRecommendations(prescriptionRequest)
-
-      // Transform AI response to our format
-      const prescriptions: GeneratedPrescription[] = aiResponse.medications.map((med: AIPrescriptionResponse['medications'][0]) => ({
-        medication: med.name,
-        dosage: med.dosage,
-        frequency: med.frequency,
-        duration: med.duration,
-        instructions: med.instructions,
-        warnings: med.warnings || [],
-        confidence: aiResponse.confidence_score || 85,
-      }))
-
-      setGeneratedPrescriptions(prescriptions)
-      setEditingPrescriptions([...prescriptions])
-      setAiReasoning(aiResponse.reasoning)
-      setCurrentStep("review")
-
-      console.log("✅ AI prescription generated successfully")
+      // Simulate AI prescription generation
+      const generatedPrescriptions: ManualPrescription[] = [
+        {
+          medication: "Paracetamol",
+          dosage: "500mg",
+          frequency: "3 times daily",
+          duration: "5 days",
+          instructions: "Take with food",
+          confidence: 85,
+          warnings: ["Do not exceed 4g daily"]
+        }
+      ]
+      
+      setEditingPrescriptions(generatedPrescriptions)
+      setAiReasoning("Based on the reported symptoms and patient history, I recommend starting with basic pain relief and symptom management.")
     } catch (error) {
-      console.error("❌ Prescription generation failed:", error)
+      console.error("Error generating prescription:", error)
       alert("Failed to generate prescription. Please try again.")
-      setCurrentStep("symptoms")
+      setCurrentStep("entry")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleEditPrescription = (index: number, field: string, value: string) => {
-    const updated = [...editingPrescriptions]
-    updated[index] = { ...updated[index], [field]: value }
-    setEditingPrescriptions(updated)
-  }
+  const handleReviewPrescriptions = () => {
+    const hasValidPrescriptions = prescriptions.some(p => 
+      p.medication.trim() && p.dosage.trim() && p.frequency.trim() && p.duration.trim()
+    )
+    
+    if (!hasValidPrescriptions) {
+      alert("Please fill in at least one complete prescription")
+      return
+    }
 
+    if (!selectedDoctorId) {
+      alert("Please select a prescribing doctor")
+      return
+    }    setCurrentStep("review")
+  }
+  
   const handleSavePrescriptions = async () => {
     setLoading(true)
     setCurrentStep("saving")
 
     try {
       // Save each prescription to the database
-      for (const prescription of editingPrescriptions) {
+      const validPrescriptions = editingPrescriptions.filter(p => 
+        p.medication.trim() && p.dosage.trim() && p.frequency.trim() && p.duration.trim()
+      )
+
+      for (const prescription of validPrescriptions) {
         const prescriptionData = {
           patient_id: patient.id,
-          doctor_id: selectedDoctorId, // Use selected doctor ID
+          doctor_id: selectedDoctorId,
           medication: prescription.medication,
           dosage: prescription.dosage,
           frequency: prescription.frequency,
           duration: prescription.duration,
-          instructions: `${prescription.instructions}\n\nAI Generated - Confidence: ${prescription.confidence}%\nSymptoms: ${symptoms}\nWarnings: ${prescription.warnings.join(", ")}`,
+          instructions: `${prescription.instructions}${symptoms ? `\n\nSymptoms: ${symptoms}` : ''}${additionalNotes ? `\n\nAdditional Notes: ${additionalNotes}` : ''}`,
         }
 
         await apiService.createPrescription(prescriptionData)
       }
-
-      // End MCP session
-      await mcpServer.endSession()
 
       setTimeout(() => {
         onComplete()
@@ -182,10 +164,8 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
       setLoading(false)
     }
   }
-
   const steps = [
-    { id: "symptoms", label: "Enter Symptoms", icon: Stethoscope },
-    { id: "generating", label: "AI Analysis", icon: Brain },
+    { id: "entry", label: "Enter Prescription", icon: Stethoscope },
     { id: "review", label: "Review & Edit", icon: Edit3 },
     { id: "saving", label: "Save Prescription", icon: Save },
   ]
@@ -198,20 +178,13 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
           <Button variant="outline" onClick={onCancel}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Patient Details
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">AI Prescription Generator</h1>
+          </Button>          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Manual Prescription Entry</h1>
             <p className="text-gray-600">
               Patient: {patient.name} (Age: {patient.age})
             </p>
           </div>
         </div>
-        {mcpInitialized && (
-          <Badge className="bg-green-100 text-green-800">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            MCP Server Active
-          </Badge>
-        )}
       </div>
 
       {/* Progress Steps */}
@@ -263,10 +236,8 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
             </div>
           </div>
         </CardContent>
-      </Card>
-
-      {/* Step Content */}
-      {currentStep === "symptoms" && (
+      </Card>      {/* Step Content */}
+      {currentStep === "entry" && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -345,23 +316,7 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
                 Generate AI Prescription
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {currentStep === "generating" && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <div className="animate-spin h-16 w-16 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-6"></div>
-            <h3 className="text-xl font-medium mb-4">AI is analyzing patient data...</h3>
-            <div className="space-y-2 text-gray-600">
-              <p>✅ Patient context loaded</p>
-              <p>✅ Symptoms analyzed</p>
-              <p>✅ Medical history reviewed</p>
-              <p className="animate-pulse">🧠 Generating prescription recommendations...</p>
-            </div>
-          </CardContent>
-        </Card>
+          </CardContent>        </Card>
       )}
 
       {currentStep === "review" && (
@@ -435,9 +390,7 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
                         rows={3}
                         className="mt-1"
                       />
-                    </div>
-
-                    {prescription.warnings.length > 0 && (
+                    </div>                    {prescription.warnings && prescription.warnings.length > 0 && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
                         <div className="flex items-center space-x-2 mb-2">
                           <AlertTriangle className="h-4 w-4 text-yellow-600" />
@@ -452,10 +405,8 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
                     )}
                   </div>
                 ))}
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
-                <Button variant="outline" onClick={() => setCurrentStep("symptoms")}>
+              </div>              <div className="flex justify-end space-x-3 mt-6">
+                <Button variant="outline" onClick={() => setCurrentStep("entry")}>
                   Back to Symptoms
                 </Button>
                 <Button onClick={handleSavePrescriptions} className="bg-green-600 hover:bg-green-700">

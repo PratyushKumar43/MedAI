@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Save, Trash2, Plus } from "lucide-react"
+import { ArrowLeft, Save, Trash2, Plus, Eye, Edit } from "lucide-react"
+import { PrescriptionPDFView } from "@/components/prescriptions/prescription-pdf-view"
 import type { Prescription, MedicationDetails } from "@/types/prescription"
 
 export default function EditPrescriptionPage({ params }: { params: { id: string } }) {
@@ -18,6 +19,7 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
   const [prescription, setPrescription] = useState<Prescription | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [viewMode, setViewMode] = useState<'edit' | 'view'>('edit')
 
   useEffect(() => {
     fetchPrescription()
@@ -236,16 +238,40 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
   }
 
   const medicationDetails = prescription.medication_details || {}
-
   return (
     <div className="page-content">
       <div className="container mx-auto p-6">
-        <div className="flex items-center mb-6">
-          <Button variant="ghost" onClick={() => router.push("/prescriptions")} className="mr-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <h1 className="text-2xl font-bold">Edit Prescription</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <Button variant="ghost" onClick={() => router.push("/prescriptions")} className="mr-4">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <h1 className="text-2xl font-bold">
+              {viewMode === 'view' ? 'View Prescription' : 'Edit Prescription'}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'view' ? 'default' : 'outline'}
+              onClick={() => setViewMode('view')}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              View PDF
+            </Button>
+            <Button
+              variant={viewMode === 'edit' ? 'default' : 'outline'}
+              onClick={() => setViewMode('edit')}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+          </div>
+        </div>
+
+        {viewMode === 'view' ? (
+          <PrescriptionPDFView prescription={prescription} />
+        ) : (
           {prescription.is_ai_generated && (
             <Badge className="ml-4 bg-blue-500">AI Generated</Badge>
           )}
@@ -425,9 +451,7 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        <div className="mt-6 flex justify-end space-x-4">
+        </div>        <div className="mt-6 flex justify-end space-x-4">
           <Button variant="outline" onClick={() => router.push("/prescriptions")}>
             Cancel
           </Button>
@@ -436,6 +460,7 @@ export default function EditPrescriptionPage({ params }: { params: { id: string 
             {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
+        )}
       </div>
     </div>
   )

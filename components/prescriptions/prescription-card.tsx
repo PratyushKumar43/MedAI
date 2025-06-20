@@ -1,13 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { MoreVertical, Edit, Trash2, Calendar, FileText } from "lucide-react"
+import { MoreVertical, Edit, Trash2, Calendar, FileText, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import type { Prescription } from "@/types/prescription"
 import { apiService } from "@/lib/api"
 import { formatDate } from "@/lib/utils"
+import { downloadPrescriptionPDF } from "@/lib/pdf-generator"
 
 interface PrescriptionCardProps {
   prescription: Prescription
@@ -16,6 +17,7 @@ interface PrescriptionCardProps {
 
 export function PrescriptionCard({ prescription, onUpdate }: PrescriptionCardProps) {
   const [loading, setLoading] = useState(false)
+  const [downloadingPDF, setDownloadingPDF] = useState(false)
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this prescription?")) return
@@ -29,6 +31,24 @@ export function PrescriptionCard({ prescription, onUpdate }: PrescriptionCardPro
       alert(`Failed to delete prescription: ${error.message || "Unknown error"}`)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDownloadPDF = async () => {
+    setDownloadingPDF(true)
+    try {
+      await downloadPrescriptionPDF({
+        ...prescription,
+        doctor_name: doctorName,
+        patient_name: patientName,
+        clinic_name: "MediOca Healthcare Platform",
+        clinic_address: "Digital Healthcare Solutions",
+      })
+    } catch (error) {
+      console.error("Error downloading PDF:", error)
+      alert("Failed to download PDF. Please try again.")
+    } finally {
+      setDownloadingPDF(false)
     }
   }
 
@@ -90,8 +110,17 @@ export function PrescriptionCard({ prescription, onUpdate }: PrescriptionCardPro
         <div className="flex items-center text-sm text-gray-500">
           <Calendar className="h-4 w-4 mr-1" />
           {formatDate(prescription.created_at || new Date())}
-        </div>
-        <div className="flex space-x-2">
+        </div>        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadPDF}
+            disabled={downloadingPDF}
+            className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+          >
+            <Download className="h-4 w-4 mr-1" />
+            {downloadingPDF ? "Generating..." : "PDF"}
+          </Button>
           <Link href={`/prescriptions/${prescription.id}`}>
             <Button variant="outline" size="sm">
               <Edit className="h-4 w-4 mr-1" />
