@@ -32,11 +32,10 @@ export default function SignUpPage() {
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const router = useRouter()
   const supabase = createClient()
-
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
-      router.push('/')
+      router.push('/AI-dashboard')
     }
   }, [user, router])
 

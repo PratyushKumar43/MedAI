@@ -5,6 +5,7 @@ import "./globals.css"
 import { Providers } from "@/components/providers"
 import { AuthProvider } from "@/providers/auth-provider"
 import { ConditionalLayout } from "@/components/layout/conditional-layout"
+import { RouteGuard } from "@/components/auth/route-guard"
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -74,15 +75,16 @@ export default function RootLayout({
                 window.scrollTo(0, 0);
               });
             `,
-          }}
-        />
+          }}        />
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <AuthProvider>
           <Providers>
-            <ConditionalLayout>
-              {children}
-            </ConditionalLayout>
+            <RouteGuard>
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
+            </RouteGuard>
           </Providers>
         </AuthProvider>
       </body>

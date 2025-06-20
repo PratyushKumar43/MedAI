@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AuthRedirect } from "@/components/auth/auth-redirect"
 import { useAuth } from "@/providers/auth-provider"
 import { 
   Sparkles, 
@@ -39,9 +38,17 @@ export default function LandingPage() {
       console.error('Error signing out:', error)
     }
   }
+
+  const handleGetStarted = () => {
+    if (user) {
+      router.push('/AI-dashboard')
+    } else {
+      router.push('/auth/sign-in')
+    }
+  }
+
   return (
     <>
-      <AuthRedirect />
       <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-purple-50">
         {/* Header/Navigation */}
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl shadow-lg border-b border-white/20">
@@ -306,22 +313,31 @@ export default function LandingPage() {
               <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
                 Experience the power of AI-driven healthcare management. Start your journey with MediOca Pro today.
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <Link href="/AI-dashboard">
-                  <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-6 rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 font-semibold text-xl flex items-center space-x-3">
-                    <Sparkles className="h-6 w-6" />
-                    <span>Get Started Now</span>
-                    <ArrowRight className="h-5 w-5" />
-                  </button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                <button 
+                  onClick={handleGetStarted}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-6 rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 font-semibold text-xl flex items-center space-x-3"
+                >
+                  <Sparkles className="h-6 w-6" />
+                  <span>{user ? 'Go to Dashboard' : 'Get Started Now'}</span>
+                  <ArrowRight className="h-5 w-5" />
+                </button>
                 
-                <Link href="/analytics">
-                  <button className="border-2 border-purple-300 text-purple-700 px-12 py-6 rounded-2xl hover:bg-purple-50 transition-all duration-300 font-semibold text-xl flex items-center space-x-3">
-                    <TrendingUp className="h-6 w-6" />
-                    <span>View Analytics</span>
-                  </button>
-                </Link>
+                {user ? (
+                  <Link href="/analytics">
+                    <button className="border-2 border-purple-300 text-purple-700 px-12 py-6 rounded-2xl hover:bg-purple-50 transition-all duration-300 font-semibold text-xl flex items-center space-x-3">
+                      <TrendingUp className="h-6 w-6" />
+                      <span>View Analytics</span>
+                    </button>
+                  </Link>
+                ) : (
+                  <Link href="/auth/sign-up">
+                    <button className="border-2 border-purple-300 text-purple-700 px-12 py-6 rounded-2xl hover:bg-purple-50 transition-all duration-300 font-semibold text-xl flex items-center space-x-3">
+                      <User className="h-6 w-6" />
+                      <span>Create Account</span>
+                    </button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>

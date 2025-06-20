@@ -32,27 +32,18 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
       </div>
     )
   }
-  // If user is not authenticated and not on auth route, show minimal layout
-  if (!user && !isAuthRoute) {
+
+  // If on landing page or auth routes, show minimal layout (no sidebar)
+  if (isLandingPage || isAuthRoute) {
     return (
       <div className="min-h-screen">
         {children}
+        {!isAuthRoute && <FloatingHomeButton />}
       </div>
     )
   }
-
-  // If on landing page, always show minimal layout (no sidebar)
-  if (isLandingPage) {
-    return (
-      <div className="min-h-screen">
-        {children}
-      </div>
-    )
-  }
-
-  // If user is authenticated and on auth route, redirect will be handled by auth pages
   // If user is authenticated, show full dashboard layout
-  if (user && !isAuthRoute) {
+  if (user) {
     return (
       <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
         <BackgroundEffects />
@@ -69,7 +60,8 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
       </div>
     )
   }
-  // For auth routes, show minimal layout
+
+  // Default: show minimal layout
   return (
     <div className="min-h-screen">
       {children}

@@ -87,7 +87,9 @@ export function Sidebar() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
 
   return (
-    <div className="fixed top-0 left-0 h-full flex flex-col w-64 glass-morphism shadow-2xl border-r border-white/30 overflow-hidden z-40">
+    <>
+      {/* Desktop Sidebar */}
+      <div className="fixed top-0 left-0 h-full flex flex-col w-64 glass-morphism shadow-2xl border-r border-white/30 overflow-hidden z-40">
       {/* Header */}
       <div className="relative h-24 px-6 flex items-center bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -209,9 +211,9 @@ export function Sidebar() {
 
           <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
             <div className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full w-full animate-pulse"></div>
-          </div>
-        </div>
+          </div>        </div>
       </div>
     </div>
+    </>
   )
 }

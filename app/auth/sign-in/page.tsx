@@ -20,11 +20,10 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
   const supabase = createClient()
-
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
-      router.push('/')
+      router.push('/AI-dashboard')
     }
   }, [user, router])
 
@@ -32,7 +31,6 @@ export default function SignInPage() {
   if (user) {
     return null
   }
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -47,7 +45,7 @@ export default function SignInPage() {
       if (error) {
         setError(error.message)
       } else {
-        router.push('/') // Redirect to dashboard
+        router.push('/AI-dashboard') // Redirect to dashboard
         router.refresh()
       }
     } catch (err) {

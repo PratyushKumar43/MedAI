@@ -6,7 +6,7 @@ import { AdvancedDashboard } from "@/components/dashboard/advanced-dashboard"
 import { AIInsights } from "@/components/dashboard/ai-insights"
 import { RealTimeMonitor } from "@/components/dashboard/realtime-monitor"
 import { InteractiveStats } from "@/components/dashboard/interactive-stats"
-import { AuthRedirect } from "@/components/auth/auth-redirect"
+import { ProtectedPageLayout } from "@/components/auth/protected-page-layout"
 import { Sparkles, TrendingUp, Activity, Brain } from "lucide-react"
 
 export default function AIDashboardPage() {
@@ -104,11 +104,9 @@ export default function AIDashboardPage() {
     const interval = setInterval(fetchStats, 30000)
     return () => clearInterval(interval)
   }, [])
-
   if (error) {
     return (
-      <>
-        <AuthRedirect />
+      <ProtectedPageLayout>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center p-12 rounded-3xl shadow-2xl border border-gray-200 bg-white">
             <div className="text-8xl mb-6">🏥</div>
@@ -121,16 +119,15 @@ export default function AIDashboardPage() {
               <Activity className="h-5 w-5 mr-2 inline" />
               Retry Connection
             </button>
-          </div>
-        </div>
-      </>
+          </div>        </div>
+      </ProtectedPageLayout>
     )
   }
-
   return (
-    <>
-      <AuthRedirect />
-      <div className="space-y-8">
+    <ProtectedPageLayout 
+      title="AI Dashboard" 
+      description="Advanced healthcare management with AI-powered insights and real-time monitoring"
+    >
       {/* Hero Header */}
       <div className="relative bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-8 border border-gray-200 shadow-xl overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10"></div>
@@ -171,12 +168,10 @@ export default function AIDashboardPage() {
       {/* Advanced Dashboard */}
       <AdvancedDashboard stats={stats} loading={loading} />
 
-      {/* AI Insights & Real-time Monitor */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      {/* AI Insights & Real-time Monitor */}      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <AIInsights insights={aiInsights} />
         <RealTimeMonitor />
       </div>
-    </div>
-    </>
+    </ProtectedPageLayout>
   )
 }
