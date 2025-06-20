@@ -157,13 +157,8 @@ export function Header({ className }: HeaderProps) {
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border border-white"></div>
-                </div>
-                <div>
+                </div>                <div>
                   <div className="text-xs font-semibold text-gray-900">{getUserDisplayName()}</div>
-                  <div className="text-xs text-gray-600 flex items-center">
-                    <Zap className="h-2 w-2 mr-1 text-yellow-500" />
-                    {getUserRole()}
-                  </div>
                 </div>
               </div>
             </DropdownMenuTrigger>
