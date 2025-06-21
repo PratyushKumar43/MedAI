@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { User, Plus, Search, Brain, Stethoscope, FileText, Eye, Download, Calendar, Pill, Heart, Activity } from "lucide-react"
+import { User, Plus, Search, Brain, Stethoscope, FileText, Eye, Download, Calendar, Pill, Heart, Activity, Edit, Trash2 } from "lucide-react"
 import { apiService, supabase } from "@/lib/api"
 import type { Prescription } from "@/types/prescription"
 import type { Patient } from "@/types/patient"
@@ -1161,94 +1161,191 @@ export default function PrescriptionsPage() {
 
   return (
     <div className="space-y-6 mt-8"> {/* Use margin top instead of padding for better spacing */}
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Doctor's Prescription Workflow</h1>
-          <p className="text-gray-600 mt-2">AI-powered prescription generation with patient context</p>
-        </div>
-        <div className="flex space-x-3">
-          <Button
-            variant={currentView === "prescriptions" ? "default" : "outline"}
-            onClick={() => setCurrentView("prescriptions")}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            View Prescriptions
-          </Button>
-          <Button
-            variant={currentView === "patients" ? "default" : "outline"}
-            onClick={() => setCurrentView("patients")}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            <Brain className="h-4 w-4 mr-2" />
-            AI Prescription Workflow
-          </Button>
-          <Button onClick={() => setShowForm(true)} variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Manual Prescription
-          </Button>
+      {/* Modern Header with Gradient Background */}
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-xl p-6 mb-8 shadow-lg">
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="mb-4 md:mb-0 text-center md:text-left">
+            <div className="inline-flex items-center justify-center p-2 bg-white/10 backdrop-blur-sm rounded-lg mb-3">
+              <FileText className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white">Prescription Management</h1>
+            <p className="text-blue-100 mt-2 max-w-xl">
+              Streamlined medication tracking with AI-powered prescription generation and patient context analysis
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setCurrentView("prescriptions")}
+              className={`${currentView === "prescriptions" 
+                ? "bg-white text-blue-700" 
+                : "bg-white/20 text-white hover:bg-white hover:text-blue-700"} 
+                px-4 py-2 h-auto rounded-lg transition-all duration-200 font-medium`}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Prescriptions
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setCurrentView("patients")}
+              className={`${currentView === "patients" 
+                ? "bg-white text-purple-700" 
+                : "bg-white/20 text-white hover:bg-white hover:text-purple-700"} 
+                px-4 py-2 h-auto rounded-lg transition-all duration-200 font-medium`}
+            >
+              <Brain className="h-4 w-4 mr-2" />
+              AI Workflow
+            </Button>
+            <Button 
+              onClick={() => setShowForm(true)} 
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 h-auto rounded-lg transition-all duration-200"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Prescription
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* AI Workflow Steps */}
+      {/* AI Workflow Steps - Modern Design */}
       {currentView === "patients" && (
-        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Stethoscope className="h-5 w-5 text-purple-600" />
-              <span>AI Prescription Workflow</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center space-x-8">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center mb-2">
+        <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 rounded-xl p-6 border border-indigo-100 shadow-md mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-2 rounded-lg">
+              <Brain className="h-5 w-5 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-indigo-900">AI-Powered Prescription Workflow</h2>
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            {/* Step 1 */}
+            <div className="flex-1 relative">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-blue-600 text-white rounded-xl flex items-center justify-center text-xl font-bold shadow-md">
                   1
                 </div>
-                <p className="text-sm font-medium">Select Patient</p>
-                <p className="text-xs text-gray-600">Choose patient for prescription</p>
+                <div>
+                  <h3 className="font-semibold text-indigo-900">Select Patient</h3>
+                  <p className="text-sm text-indigo-700">Choose from your patient list</p>
+                </div>
               </div>
-              <div className="w-8 h-px bg-purple-300"></div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center mb-2">
+              <div className="hidden md:block absolute top-7 right-0 w-full h-0.5 bg-gradient-to-r from-indigo-300 to-transparent -z-10"></div>
+            </div>
+            
+            {/* Step 2 */}
+            <div className="flex-1 relative">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-cyan-600 text-white rounded-xl flex items-center justify-center text-xl font-bold shadow-md">
                   2
                 </div>
-                <p className="text-sm font-medium">View Details</p>
-                <p className="text-xs text-gray-600">Review patient information</p>
+                <div>
+                  <h3 className="font-semibold text-indigo-900">Review Details</h3>
+                  <p className="text-sm text-indigo-700">Verify patient information</p>
+                </div>
               </div>
-              <div className="w-8 h-px bg-purple-300"></div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center mb-2">
+              <div className="hidden md:block absolute top-7 right-0 w-full h-0.5 bg-gradient-to-r from-blue-300 to-transparent -z-10"></div>
+            </div>
+            
+            {/* Step 3 */}
+            <div className="flex-1 relative">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-cyan-600 to-purple-600 text-white rounded-xl flex items-center justify-center text-xl font-bold shadow-md">
                   3
                 </div>
-                <p className="text-sm font-medium">AI Analysis</p>
-                <p className="text-xs text-gray-600">Enter symptoms & diagnosis</p>
+                <div>
+                  <h3 className="font-semibold text-indigo-900">AI Analysis</h3>
+                  <p className="text-sm text-indigo-700">Input symptoms & diagnosis</p>
+                </div>
               </div>
-              <div className="w-8 h-px bg-purple-300"></div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center mb-2">
+              <div className="hidden md:block absolute top-7 right-0 w-full h-0.5 bg-gradient-to-r from-cyan-300 to-transparent -z-10"></div>
+            </div>
+            
+            {/* Step 4 */}
+            <div className="flex-1">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-xl flex items-center justify-center text-xl font-bold shadow-md">
                   4
                 </div>
-                <p className="text-sm font-medium">Review & Save</p>
-                <p className="text-xs text-gray-600">Approve AI recommendations</p>
+                <div>
+                  <h3 className="font-semibold text-indigo-900">Review & Save</h3>
+                  <p className="text-sm text-indigo-700">Approve AI recommendations</p>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          
+          {/* Benefits */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white/70 backdrop-blur-sm p-4 rounded-lg border border-indigo-100">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1.5 bg-blue-100 rounded-md">
+                  <Brain className="h-4 w-4 text-blue-700" />
+                </div>
+                <h4 className="font-medium text-blue-900">AI-Powered</h4>
+              </div>
+              <p className="text-xs text-gray-600">Leverages advanced medical AI models to suggest appropriate medications</p>
+            </div>
+            
+            <div className="bg-white/70 backdrop-blur-sm p-4 rounded-lg border border-indigo-100">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1.5 bg-green-100 rounded-md">
+                  <Stethoscope className="h-4 w-4 text-green-700" />
+                </div>
+                <h4 className="font-medium text-green-900">Context-Aware</h4>
+              </div>
+              <p className="text-xs text-gray-600">Considers patient history, allergies, and current medications</p>
+            </div>
+            
+            <div className="bg-white/70 backdrop-blur-sm p-4 rounded-lg border border-indigo-100">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1.5 bg-purple-100 rounded-md">
+                  <FileText className="h-4 w-4 text-purple-700" />
+                </div>
+                <h4 className="font-medium text-purple-900">Comprehensive</h4>
+              </div>
+              <p className="text-xs text-gray-600">Generates complete prescription details with dosage and instructions</p>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Search Bar */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <input
-            type="text"
-            placeholder={currentView === "prescriptions" ? "Search prescriptions..." : "Search patients..."}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full"
-          />
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
+      {/* Enhanced Search Bar with Filters */}
+      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm mb-6">
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <div className="relative flex-1 w-full">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-blue-500" />
+            </div>
+            <input
+              type="text"
+              placeholder={currentView === "prescriptions" 
+                ? "Search medications, patients, or doctors..." 
+                : "Search patients by name, email or ID..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-3 bg-gray-50 border-0 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white w-full transition-all duration-200"
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm("")}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2 self-end">
+            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer px-3 py-1">
+              All
+            </Badge>
+            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200 cursor-pointer px-3 py-1">
+              Recent
+            </Badge>
+            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200 cursor-pointer px-3 py-1">
+              AI Generated
+            </Badge>
           </div>
         </div>
       </div>
@@ -1267,109 +1364,134 @@ export default function PrescriptionsPage() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-6">
               {patientPrescriptionGroups.map((group) => (
-                <Card key={group.patient.id} className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <Card key={group.patient.id} className="bg-gradient-to-br from-white to-blue-50 border border-blue-100 hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-6">
-                    {/* Patient Header */}
-                    <div className="flex items-center justify-between mb-4 p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5" />
+                    {/* Patient Medications Panel */}
+                    <div className="mb-4">
+                      {/* Patient Banner */}
+                      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-lg p-4 flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-12 w-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                            <User className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-xl text-white">{group.patient.name}</h3>
+                            <p className="text-blue-100 text-sm">Patient ID: {group.patient.id?.slice(0, 8) || "N/A"}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">{group.patient.name}</h3>
-                          <p className="text-blue-100 text-sm">Patient ID: {group.patient.id?.slice(0, 8) || "N/A"}</p>
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <Badge className="bg-white/20 text-white">
+                        <Badge className="bg-white text-blue-700 text-sm px-3 py-1 font-medium">
                           {group.totalMedications} medication{group.totalMedications !== 1 ? 's' : ''}
                         </Badge>
                       </div>
-                    </div>
 
-                    {/* Medications List */}
-                    <div className="space-y-3 mb-4">
-                      {group.medications.map((medication: any, index: number) => (
-                        <div key={medication.id} className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-purple-100">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center space-x-2">
-                              <Pill className="h-4 w-4 text-purple-600" />
-                              <h4 className="text-base font-bold text-gray-900">{medication.medication}</h4>
-                            </div>
-                            {medication.is_ai_generated && (
-                              <Badge className="bg-purple-100 text-purple-800 text-xs">
-                                <Brain className="h-3 w-3 mr-1" />
-                                AI
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-2 text-sm mb-2">
-                            <div className="bg-gray-50 p-2 rounded">
-                              <span className="font-medium text-gray-600">Dosage:</span>
-                              <p className="text-gray-900 font-semibold text-xs">{medication.dosage}</p>
-                            </div>
-                            <div className="bg-gray-50 p-2 rounded">
-                              <span className="font-medium text-gray-600">Frequency:</span>
-                              <p className="text-gray-900 font-semibold text-xs">{medication.frequency}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between text-xs text-gray-600">
-                            <div className="flex items-center">
-                              <Stethoscope className="h-3 w-3 mr-1" />
-                              <span>{medication.doctor}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              <span>{medication.duration}</span>
-                            </div>
-                          </div>
-                          
-                          {/* Individual Medication Actions */}
-                          <div className="flex space-x-2 mt-2">
-                            <Button
-                              onClick={() => {
-                                // Find the full prescription object for editing
-                                const fullPrescription = prescriptions.find(p => p.id === medication.id)
-                                if (fullPrescription) {
-                                  handleEdit(fullPrescription)
-                                }
-                              }}
-                              size="sm"
-                              variant="outline"
-                              className="border-blue-300 text-blue-600 hover:bg-blue-50 text-xs px-2 py-1 h-6"
+                      {/* Medication Cards Container */}
+
+                      {/* Active Medication Details */}
+                      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mt-2">
+
+                        {/* Medication Cards in Grid Layout */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {group.medications.map((medication: any) => (
+                            <div 
+                              key={medication.id} 
+                              className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
                             >
-                              ✏️ Edit
-                            </Button>
-                            <Button
-                              onClick={() => handleDelete(medication.id)}
-                              size="sm"
-                              variant="outline"
-                              className="border-red-300 text-red-600 hover:bg-red-50 text-xs px-2 py-1 h-6"
-                            >
-                              🗑️ Delete
-                            </Button>
-                          </div>
-                          
-                          {medication.instructions && (
-                            <div className="bg-yellow-50 p-2 rounded border border-yellow-200 mt-2">
-                              <p className="text-xs text-yellow-800">
-                                <strong>Instructions:</strong> {medication.instructions.substring(0, 60)}
-                                {medication.instructions.length > 60 && "..."}
-                              </p>
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-lg font-bold text-gray-900 flex items-center">
+                                  {medication.medication}
+                                  {medication.is_ai_generated && (
+                                    <Badge className="ml-2 bg-purple-100 text-purple-800 text-xs">
+                                      <Brain className="h-3 w-3 mr-1" />
+                                      AI
+                                    </Badge>
+                                  )}
+                                </h4>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                                <div className="bg-blue-50 p-3 rounded-lg">
+                                  <span className="font-medium text-blue-700 block mb-1">Dosage</span>
+                                  <p className="text-gray-900 font-semibold">{medication.dosage}</p>
+                                </div>
+                                <div className="bg-blue-50 p-3 rounded-lg">
+                                  <span className="font-medium text-blue-700 block mb-1">Frequency</span>
+                                  <p className="text-gray-900 font-semibold">{medication.frequency}</p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center justify-between text-sm text-gray-600 mb-4 bg-gray-50 p-2 rounded-lg">
+                                <div className="flex items-center">
+                                  <Stethoscope className="h-4 w-4 mr-1 text-gray-500" />
+                                  <span>{medication.doctor}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Calendar className="h-4 w-4 mr-1 text-gray-500" />
+                                  <span>{medication.duration}</span>
+                                </div>
+                              </div>
+                              
+                              {medication.instructions && (
+                                <div className="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400 mb-4">
+                                  <p className="text-sm text-yellow-800">
+                                    <strong className="block mb-1">Instructions:</strong> 
+                                    {medication.instructions.substring(0, 80)}
+                                    {medication.instructions.length > 80 && "..."}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {/* Individual Medication Actions */}
+                              <div className="flex space-x-2 pt-2 border-t border-gray-100">
+                                <Button
+                                  onClick={() => {
+                                    // Find the full prescription object for editing
+                                    const fullPrescription = prescriptions.find(p => p.id === medication.id)
+                                    if (fullPrescription) {
+                                      handleEdit(fullPrescription)
+                                    }
+                                  }}
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-blue-300 text-blue-600 hover:bg-blue-50 text-sm px-3 py-1 h-8 flex-1"
+                                >
+                                  <Edit className="h-4 w-4 mr-2" /> Edit
+                                </Button>
+                                <Button
+                                  onClick={() => handleDelete(medication.id)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-red-300 text-red-600 hover:bg-red-50 text-sm px-3 py-1 h-8 flex-1"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                </Button>
+                              </div>
                             </div>
-                          )}
+                          ))}
                         </div>
-                      ))}
+                      </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="space-y-2 pt-3 border-t border-gray-200">
-                      {/* Primary Actions Row */}
-                      <div className="flex space-x-2">
+                    <div className="flex justify-between items-center mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          onClick={() => {
+                            // Add new medication to this patient using the new form
+                            setSelectedPatientForForm(group.patient.id)
+                            setShowForm(true)
+                          }}
+                          size="sm"
+                          variant="outline"
+                          className="border-green-300 text-green-600 hover:bg-green-50 flex items-center"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Medication
+                        </Button>
+                      </div>
+                      
+                      <div className="flex space-x-3">
                         <Button
                           onClick={() => {
                             // Find the first patient details from medications
@@ -1412,8 +1534,7 @@ export default function PrescriptionsPage() {
                               }
                             }
                           }}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 flex-1"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
@@ -1455,44 +1576,10 @@ export default function PrescriptionsPage() {
                               setShowAIPrescription(true)
                             }
                           }}
-                          size="sm"
-                          variant="outline"
-                          className="border-purple-200 text-purple-700 hover:bg-purple-50 flex-1"
+                          className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm"
                         >
                           <Brain className="h-4 w-4 mr-2" />
-                          AI Rx
-                        </Button>
-                      </div>
-                      {/* Secondary Actions Row */}
-                      <div className="flex space-x-2">
-                        <Button
-                          onClick={() => {
-                            // Add new medication to this patient using the new form
-                            setSelectedPatientForForm(group.patient.id)
-                            setShowForm(true)
-                          }}
-                          size="sm"
-                          variant="outline"
-                          className="border-green-300 text-green-600 hover:bg-green-50 flex-1 text-xs"
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add Medication
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            // Delete all medications for this patient (with confirmation)
-                            if (confirm(`Are you sure you want to delete all ${group.totalMedications} medications for ${group.patient.name}? This action cannot be undone.`)) {
-                              group.medications.forEach((med: any) => {
-                                handleDelete(med.id) // Delete each medication
-                              })
-                            }
-                          }}
-                          size="sm"
-                          variant="outline"
-                          className="border-red-300 text-red-600 hover:bg-red-50 flex-1 text-xs"
-                        >
-                          <FileText className="h-3 w-3 mr-1" />
-                          Delete All
+                          AI Prescription
                         </Button>
                       </div>
                     </div>
@@ -1526,39 +1613,66 @@ export default function PrescriptionsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredPatients.map((patient) => (
-                <Card key={patient.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="h-6 w-6 text-blue-600" />
+                <div 
+                  key={patient.id} 
+                  className="bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer"
+                  onClick={() => handlePatientSelect(patient)}
+                >
+                  {/* Patient Card Header */}
+                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 backdrop-blur-sm"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full -ml-8 -mb-8 backdrop-blur-sm"></div>
+                    
+                    <div className="flex items-center gap-4 relative z-10">
+                      <div className="h-16 w-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 shadow-inner">
+                        <User className="h-8 w-8 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{patient.name}</h3>
-                        <p className="text-sm text-gray-600">Age: {calculateAge(patient.date_of_birth)}</p>
+                        <h3 className="text-xl font-bold text-white">{patient.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className="bg-white/20 text-white backdrop-blur-sm border border-white/10">
+                            Age: {calculateAge(patient.date_of_birth)}
+                          </Badge>
+                          <Badge className="bg-white/20 text-white backdrop-blur-sm border border-white/10">
+                            ID: {patient.id.slice(0, 8)}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-
-                    <div className="space-y-2 text-sm text-gray-600 mb-4">
-                      <p>
-                        <strong>Email:</strong> {patient.email}
-                      </p>
-                      <p>
-                        <strong>Phone:</strong> {patient.phone}
-                      </p>
-                      <p>
-                        <strong>DOB:</strong> {formatDate(patient.date_of_birth)}
-                      </p>
+                  </div>
+                  
+                  {/* Patient Card Content */}
+                  <div className="p-5">
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-indigo-50 p-3 rounded-lg">
+                        <p className="text-xs text-indigo-600 font-medium mb-1">Email</p>
+                        <p className="text-sm text-gray-800 truncate">{patient.email}</p>
+                      </div>
+                      <div className="bg-indigo-50 p-3 rounded-lg">
+                        <p className="text-xs text-indigo-600 font-medium mb-1">Phone</p>
+                        <p className="text-sm text-gray-800">{patient.phone}</p>
+                      </div>
                     </div>
-
+                    
+                    <div className="flex items-center justify-between text-sm mb-4">
+                      <div className="flex items-center gap-1 text-gray-600">
+                        <Calendar className="h-4 w-4" />
+                        <span>DOB: {formatDate(patient.date_of_birth)}</span>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800">
+                        Active
+                      </Badge>
+                    </div>
+                    
+                    {/* Action Button */}
                     <Button
-                      onClick={() => handlePatientSelect(patient)}
-                      className="w-full bg-purple-600 hover:bg-purple-700"
+                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md group-hover:shadow-lg transition-all duration-300 mt-2"
                     >
                       <Brain className="h-4 w-4 mr-2" />
-                      Start AI Prescription
+                      Generate AI Prescription
                     </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           )}

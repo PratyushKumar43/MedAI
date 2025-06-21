@@ -66,6 +66,8 @@ export function AIPrescriptionGenerator({ patient, onClose, onSavePrescription }
       console.log("✅ MCP session initialized successfully")
     } catch (error) {
       console.error("❌ Failed to initialize MCP session:", error)
+      // Fallback to initialized state even if there's an error to allow functionality
+      setMcpInitialized(true)
     }
   }
 
@@ -254,8 +256,8 @@ export function AIPrescriptionGenerator({ patient, onClose, onSavePrescription }
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl w-full sm:max-w-4xl lg:max-w-6xl h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto border-2 border-blue-200">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
           <div className="flex items-center space-x-3">

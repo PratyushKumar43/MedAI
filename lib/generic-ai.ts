@@ -20,7 +20,7 @@ interface MedicalContext {
 }
 
 class GenericAIService {  private model = genAI.getGenerativeModel({ 
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     generationConfig: {
       temperature: 0.2, // Lower temperature for medical accuracy
       topP: 0.8,

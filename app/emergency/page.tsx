@@ -209,11 +209,10 @@ export default function EmergencyPage() {
           <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-xl">
             <Shield className="h-8 w-8 text-white" />
           </div>
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent font-poppins">
+          <div>            <h1 className="text-xl xs:text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent font-poppins">
               Emergency Services
             </h1>
-            <p className="text-xl text-gray-600 font-medium">Rapid response and ambulance dispatch system</p>
+            <p className="text-sm xs:text-base md:text-lg text-gray-600 font-medium">Rapid response and ambulance dispatch system</p>
           </div>
         </div>
 
@@ -236,7 +235,7 @@ export default function EmergencyPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Quick Actions */}
         <div className="glass-morphism rounded-3xl shadow-2xl border border-white/30 p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-poppins">Emergency Actions</h2>
+          <h2 className="text-lg xs:text-xl font-bold text-gray-900 mb-6 font-poppins">Emergency Actions</h2>
 
           {/* Location Status */}
           <div className="mb-6 glass-morphism rounded-xl p-4 border border-white/30">
@@ -318,7 +317,7 @@ export default function EmergencyPage() {
         {/* Active Cases */}
         <div className="xl:col-span-2 glass-morphism rounded-3xl shadow-2xl border border-white/30 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 font-poppins">Active Emergency Cases</h2>
+            <h2 className="text-lg xs:text-xl font-bold text-gray-900 font-poppins">Active Emergency Cases</h2>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-red-600 font-medium">Live Updates</span>
@@ -418,7 +417,7 @@ export default function EmergencyPage() {
           <div className="glass-morphism rounded-3xl shadow-2xl border border-white/30 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-white/20">
               <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-gray-900 font-poppins">Book Emergency Ambulance</h3>
+                <h3 className="text-lg xs:text-xl font-bold text-gray-900 font-poppins">Book Emergency Ambulance</h3>
                 <button
                   onClick={() => setShowBookingForm(false)}
                   className="text-gray-400 hover:text-gray-600 text-2xl"

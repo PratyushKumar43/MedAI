@@ -36,18 +36,49 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="glass-morphism rounded-3xl p-8 border border-white/30 shadow-2xl">
-        <div className="flex items-center justify-between">
+      {/* Header */}      <div className="glass-morphism rounded-3xl p-6 sm:p-8 border border-white/30 shadow-2xl">
+        {/* Mobile layout - stacked vertically */}
+        <div className="md:hidden space-y-5">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <BarChart3 className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl xs:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent font-poppins">
+                Analytics Dashboard
+              </h1>
+              <p className="text-sm xs:text-base text-gray-600 font-medium">Comprehensive healthcare insights and metrics</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2">
+            {(["7d", "30d", "90d", "1y"] as const).map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`py-2 rounded-xl transition-all duration-300 text-sm ${
+                  timeRange === range
+                    ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg"
+                    : "glass-morphism border border-white/30"
+                }`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Desktop layout - side by side */}
+        <div className="hidden md:flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
               <BarChart3 className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent font-poppins">
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent font-poppins">
                 Analytics Dashboard
               </h1>
-              <p className="text-xl text-gray-600 font-medium">Comprehensive healthcare insights and metrics</p>
+              <p className="text-base lg:text-lg text-gray-600 font-medium">Comprehensive healthcare insights and metrics</p>
             </div>
           </div>
 
@@ -116,7 +147,7 @@ export default function AnalyticsPage() {
               </span>
             </div>
             <h3 className="text-sm font-medium text-gray-600 mb-1">{metric.title}</h3>
-            <p className="text-3xl font-bold text-gray-900">{metric.value.toLocaleString()}</p>
+            <p className="text-xl xs:text-2xl font-bold text-gray-900">{metric.value.toLocaleString()}</p>
           </div>
         ))}
       </div>
@@ -125,7 +156,7 @@ export default function AnalyticsPage() {
         {/* Patient Visits Chart */}
         <div className="glass-morphism rounded-3xl shadow-2xl border border-white/30 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 font-poppins">Patient Visits Trend</h3>
+            <h3 className="text-lg xs:text-xl font-bold text-gray-900 font-poppins">Patient Visits Trend</h3>
             <TrendingUp className="h-6 w-6 text-green-600" />
           </div>
 
@@ -148,7 +179,7 @@ export default function AnalyticsPage() {
         {/* Department Performance */}
         <div className="glass-morphism rounded-3xl shadow-2xl border border-white/30 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 font-poppins">Department Performance</h3>
+            <h3 className="text-lg xs:text-xl font-bold text-gray-900 font-poppins">Department Performance</h3>
             <PieChart className="h-6 w-6 text-purple-600" />
           </div>
 

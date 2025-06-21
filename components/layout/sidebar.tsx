@@ -16,8 +16,15 @@ import {
   Shield,
   Sparkles,
   Activity,
+  X
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useIsMobile } from "@/hooks/use-mobile"
+
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
 
 const navigation = [
   {
@@ -82,14 +89,63 @@ const navigation = [
   },
 ]
 
-export function Sidebar() {
+export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname()
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
+  const isMobile = useIsMobile()
+  
+  // Close sidebar when pressing Escape key on mobile
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobile && onClose) {
+        onClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isMobile, onClose]);
+
+  // Handle click outside to close on mobile
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const sidebar = document.getElementById('sidebar-container');
+      if (sidebar && !sidebar.contains(e.target as Node) && onClose) {
+        onClose();
+      }
+    };
+    
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, isMobile, onClose]);
+
+  if (!isOpen && isMobile) return null;
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <div className="fixed top-0 left-0 h-full flex flex-col w-64 glass-morphism shadow-2xl border-r border-white/30 overflow-hidden z-40">
+      {/* Responsive Sidebar */}
+      <div 
+        id="sidebar-container"
+        className={cn(
+          "fixed top-0 left-0 h-full flex flex-col glass-morphism shadow-2xl border-r border-white/30 overflow-hidden z-40 transition-all duration-300",
+          isMobile ? (isOpen ? "translate-x-0 w-[280px]" : "-translate-x-full w-[280px]") : "w-64"
+        )}
+      >
+        {/* Close button - mobile only */}
+        {isMobile && onClose && (
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/40 transition-all z-50"
+            aria-label="Close sidebar"
+          >
+            <X size={18} />
+          </button>
+        )}
       {/* Header */}
       <div className="relative h-24 px-6 flex items-center bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>

@@ -11,7 +11,7 @@ interface InteractiveStatsProps {
 
 export function InteractiveStats({ stats, loading }: InteractiveStatsProps) {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
-
+  // Reduced to 3 key cards as requested
   const statCards = [
     {
       id: "patients",
@@ -46,51 +46,19 @@ export function InteractiveStats({ stats, loading }: InteractiveStatsProps) {
       description: "AI-powered insights",
       bgPattern: "ai",
     },
-    {
-      id: "accuracy",
-      title: "AI Accuracy Rate",
-      value: `${stats.accuracyRate.toFixed(1)}%`,
-      icon: Sparkles,
-      gradient: "from-pink-500 via-rose-600 to-red-500",
-      trend: "+2.1%",
-      trendUp: true,
-      description: "Diagnostic precision",
-      bgPattern: "accuracy",
-    },
-    {
-      id: "telemedicine",
-      title: "Active Sessions",
-      value: stats.telemedicineActive,
-      icon: Zap,
-      gradient: "from-orange-500 via-amber-600 to-yellow-500",
-      trend: "+18.7%",
-      trendUp: true,
-      description: "Live consultations",
-      bgPattern: "sessions",
-    },
-    {
-      id: "emergency",
-      title: "Emergency Cases",
-      value: stats.emergencyCases,
-      icon: Shield,
-      gradient: "from-red-500 via-red-600 to-pink-500",
-      trend: "-5.2%",
-      trendUp: false,
-      description: "Critical interventions",
-      bgPattern: "emergency",
-    },
+    
   ]
-
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {statCards.map((card) => (
         <div
           key={card.id}
           onMouseEnter={() => setHoveredCard(card.id)}
           onMouseLeave={() => setHoveredCard(null)}
           className={cn(
-            "relative group glass-morphism rounded-3xl p-6 border border-white/30 shadow-xl transition-all duration-500 cursor-pointer overflow-hidden",
-            hoveredCard === card.id ? "scale-105 shadow-2xl" : "hover:scale-102",
+            "relative group glass-morphism rounded-xl p-5 sm:p-6 border border-white/30 shadow-lg transition-all duration-500 cursor-pointer overflow-hidden",
+            hoveredCard === card.id ? "scale-105 shadow-xl" : "hover:scale-102",
           )}
         >
           {/* Background Pattern */}
@@ -103,43 +71,42 @@ export function InteractiveStats({ stats, loading }: InteractiveStatsProps) {
           <div className="absolute -bottom-5 -left-5 w-15 h-15 bg-white/5 rounded-full animate-bounce"></div>
 
           {/* Content */}
-          <div className="relative z-10">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+          <div className="relative z-10">            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
               <div
                 className={cn(
-                  "p-4 rounded-2xl bg-gradient-to-br shadow-lg transition-all duration-300",
+                  "p-2.5 rounded-lg bg-gradient-to-br shadow-md transition-all duration-300",
                   `${card.gradient}`,
-                  hoveredCard === card.id ? "scale-110 shadow-xl" : "",
+                  hoveredCard === card.id ? "scale-110 shadow-lg" : "",
                 )}
               >
-                <card.icon className="h-7 w-7 text-white" />
+                <card.icon className="h-4 w-4 text-white" />
               </div>
               <div
                 className={cn(
-                  "flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-semibold transition-all duration-300",
+                  "flex items-center space-x-0.5 px-2 py-0.5 rounded-full text-xs font-medium transition-all duration-300",
                   card.trendUp ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700",
                   hoveredCard === card.id ? "scale-110" : "",
                 )}
               >
-                {card.trendUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                {card.trendUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                 <span>{card.trend}</span>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-gray-700 font-poppins">{card.title}</h3>
-              <div className="flex items-baseline space-x-2">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-gray-700 font-poppins">{card.title}</h3>
+              <div className="flex items-baseline space-x-1">
                 <span
                   className={cn(
-                    "text-4xl font-bold bg-gradient-to-r bg-clip-text text-transparent transition-all duration-300",
+                    "text-xl sm:text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent transition-all duration-300",
                     `${card.gradient}`,
                     hoveredCard === card.id ? "scale-110" : "",
                   )}
                 >
                   {loading ? (
-                    <div className="h-10 w-20 bg-gray-200 rounded-lg animate-pulse" />
+                    <div className="h-7 w-16 bg-gray-200 rounded-md animate-pulse" />
                   ) : typeof card.value === "string" ? (
                     card.value
                   ) : (
@@ -147,15 +114,14 @@ export function InteractiveStats({ stats, loading }: InteractiveStatsProps) {
                   )}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 font-medium">{card.description}</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-0.5">{card.description}</p>
             </div>
 
             {/* Progress Bar */}
             <div className="mt-6">
-              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                <div
-                  className={cn(
-                    "h-2 rounded-full bg-gradient-to-r transition-all duration-1000",
+              <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div                  className={cn(
+                    "h-2.5 rounded-full bg-gradient-to-r transition-all duration-1000",
                     `${card.gradient}`,
                     hoveredCard === card.id ? "animate-pulse" : "",
                   )}

@@ -156,220 +156,128 @@ export function PatientForm({ onClose, onSuccess, patient, isEdit = false }: Pat
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">{isEdit ? 'Edit' : 'Add New'} Patient</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            ✕
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Full Name
-            </label>
-            <input
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-            />
+    <div className="fixed inset-0 z-50 overflow-hidden">
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-2xl w-full sm:max-w-3xl lg:max-w-4xl max-h-[90vh] overflow-y-auto border-2 border-green-200">
+          <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-green-50/80">
+            <h2 className="text-xl font-semibold text-gray-900">{isEdit ? 'Edit' : 'Add New'} Patient</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              ✕
+            </button>
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-              Phone
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700">
-              Date of Birth
-            </label>
-            <input
-              id="date_of_birth"
-              name="date_of_birth"
-              type="date"
-              value={formData.date_of_birth}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-              Address
-            </label>
-            <textarea
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="medical_history" className="block text-sm font-medium text-gray-700">
-              Medical History
-            </label>
-            <textarea
-              id="medical_history"
-              name="medical_history"
-              value={formData.medical_history}
-              onChange={handleChange}
-              rows={4}
-              placeholder="Enter patient's medical history..."
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
-
-          {/* Vital Signs Section */}
-          <div className="pt-4 border-t border-gray-200">
-            <h3 className="font-medium text-gray-900 mb-4">Vital Signs</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="vital_blood_pressure" className="block text-sm font-medium text-gray-700">
-                  Blood Pressure (mmHg)
-                </label>
-                <input
-                  id="vital_blood_pressure"
-                  name="vital_blood_pressure"
-                  placeholder="e.g., 120/80"
-                  value={formData.vital_signs.blood_pressure}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">Format: systolic/diastolic (e.g., 120/80)</p>
-              </div>
-              
-              <div>
-                <label htmlFor="vital_heart_rate" className="block text-sm font-medium text-gray-700">
-                  Heart Rate (bpm)
-                </label>
-                <input
-                  id="vital_heart_rate"
-                  name="vital_heart_rate"
-                  type="number"
-                  placeholder="e.g., 72"
-                  value={formData.vital_signs.heart_rate}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="vital_temperature" className="block text-sm font-medium text-gray-700">
-                  Temperature (°F)
-                </label>
-                <input
-                  id="vital_temperature"
-                  name="vital_temperature"
-                  type="number"
-                  step="0.1"
-                  placeholder="e.g., 98.6"
-                  value={formData.vital_signs.temperature}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="vital_weight" className="block text-sm font-medium text-gray-700">
-                  Weight (kg)
-                </label>
-                <input
-                  id="vital_weight"
-                  name="vital_weight"
-                  type="number"
-                  step="0.1"
-                  placeholder="e.g., 70"
-                  value={formData.vital_signs.weight}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="vital_height" className="block text-sm font-medium text-gray-700">
-                  Height (cm)
-                </label>
-                <input
-                  id="vital_height"
-                  name="vital_height"
-                  type="number"
-                  placeholder="e.g., 170"
-                  value={formData.vital_signs.height}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="vital_bmi" className="block text-sm font-medium text-gray-700">
-                  BMI
-                </label>
-                <input
-                  id="vital_bmi"
-                  name="vital_bmi"
-                  readOnly
-                  value={formData.vital_signs.bmi}
-                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none"
-                />
-                <p className="text-xs text-gray-500 mt-1">Calculated automatically from height and weight</p>
-              </div>
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                Full Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
             </div>
-            <p className="text-sm text-gray-500 italic mt-2">
-              * Leave blank if not assessed. Blank fields will be marked as "Not Examined".
-            </p>
-          </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-            >
-              {loading ? (isEdit ? "Updating..." : "Creating...") : (isEdit ? "Update Patient" : "Create Patient")}
-            </button>
-          </div>
-        </form>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Phone
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700">
+                Date of Birth
+              </label>
+              <input
+                id="date_of_birth"
+                name="date_of_birth"
+                type="date"
+                value={formData.date_of_birth}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                Address
+              </label>
+              <textarea
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                rows={3}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="medical_history" className="block text-sm font-medium text-gray-700">
+                Medical History
+              </label>
+              <textarea
+                id="medical_history"
+                name="medical_history"
+                value={formData.medical_history}
+                onChange={handleChange}
+                rows={3}
+                placeholder="Enter patient's medical history..."
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm"
+              >
+                Cancel
+              </button>
+              
+              <button
+                type="submit"
+                disabled={loading}
+                className={`px-6 py-2.5 border border-transparent rounded-md text-sm font-medium text-white disabled:opacity-50 shadow-sm ${
+                  isEdit 
+                    ? 'bg-blue-600 hover:bg-blue-700' 
+                    : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {loading ? (isEdit ? "Updating..." : "Creating...") : (isEdit ? "Update Patient" : "Create Patient")}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )

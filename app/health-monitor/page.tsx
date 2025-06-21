@@ -151,11 +151,10 @@ export default function HealthMonitorPage() {
           <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl">
             <Activity className="h-8 w-8 text-white" />
           </div>
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent font-poppins">
+          <div>            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent font-poppins">
               Health Monitoring
             </h1>
-            <p className="text-xl text-gray-600 font-medium">Real-time patient vital signs and monitoring</p>
+            <p className="text-base md:text-lg text-gray-600 font-medium">Real-time patient vital signs and monitoring</p>
           </div>
         </div>
         

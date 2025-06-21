@@ -77,7 +77,7 @@ export function AIInsights({ insights = [] }: AIInsightsProps) {
             <Brain className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 font-poppins">AI Insights</h3>
+            <h3 className="text-xl font-bold text-gray-900 font-poppins">AI Insights</h3>
             <p className="text-gray-600">Real-time intelligent recommendations</p>
           </div>
         </div>

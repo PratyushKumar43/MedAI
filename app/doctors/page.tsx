@@ -56,11 +56,10 @@ export default function DoctorsPage() {
                 </div>
                 
                 {/* Text content */}
-                <div className="flex-1">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-poppins">
+                <div className="flex-1">                  <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-poppins">
                     Available Doctors
                   </h1>
-                  <p className="text-xl text-gray-600 mt-1">Hello Dr. Sarah Johnson, view your colleagues available today</p>
+                  <p className="text-base md:text-lg text-gray-600 mt-1">Hello Dr. Sarah Johnson, view your colleagues available today</p>
                   
                   {/* Notification box */}
                   <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 mt-6 shadow-lg max-w-3xl">
