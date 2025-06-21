@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { apiService } from "@/lib/api"
-import { AdvancedDashboard } from "@/components/dashboard/advanced-dashboard"
 import { AIInsights } from "@/components/dashboard/ai-insights"
 import { RealTimeMonitor } from "@/components/dashboard/realtime-monitor"
 import { InteractiveStats } from "@/components/dashboard/interactive-stats"
@@ -124,51 +123,44 @@ export default function AIDashboardPage() {
     )
   }
   return (
-    <ProtectedPageLayout 
-      title="AI Dashboard" 
-      description="Advanced healthcare management with AI-powered insights and real-time monitoring"
-    >
+    <ProtectedPageLayout>
       {/* Hero Header */}
-      <div className="relative bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-8 border border-gray-200 shadow-xl overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10"></div>
-        <div className="relative z-10 flex justify-between items-center">
-          <div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+      <div className="relative bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 sm:p-6 border border-gray-200 shadow-lg overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10"></div>        <div className="relative z-10 flex justify-between items-center">
+          <div>            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent mb-1">
               AI Dashboard
             </h1>
-            <p className="text-xl text-gray-600 font-medium">
+            <p className="text-sm md:text-base text-gray-600 font-medium">
               Advanced healthcare analytics powered by AI
-            </p>
-            <div className="flex items-center space-x-6 mt-4">
-              <div className="flex items-center space-x-2">
-                <Sparkles className="h-5 w-5 text-purple-600" />
-                <span className="text-purple-700 font-semibold">AI-Powered Diagnostics</span>
+            </p>            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3">
+              <div className="flex items-center gap-1">
+                <Sparkles className="h-4 w-4 text-purple-600" />
+                <span className="text-purple-700 text-xs sm:text-sm font-medium">AI Diagnostics</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                <span className="text-green-700 font-semibold">Real-time Analytics</span>
+              <div className="flex items-center gap-1">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <span className="text-green-700 text-xs sm:text-sm font-medium">Real-time Data</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <Brain className="h-5 w-5 text-blue-600" />
-                <span className="text-blue-700 font-semibold">AI Integration</span>
+              <div className="flex items-center gap-1">
+                <Brain className="h-4 w-4 text-blue-600" />
+                <span className="text-blue-700 text-xs sm:text-sm font-medium">AI Integration</span>
               </div>
-            </div>
-          </div>
+            </div>          </div>
           <div className="hidden lg:block">
-            <div className="w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
-              <Sparkles className="h-16 w-16 text-white" />
+            <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
+              <Sparkles className="h-10 w-10 text-white" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Interactive Stats */}
-      <InteractiveStats stats={stats} loading={loading} />
-
-      {/* Advanced Dashboard */}
-      <AdvancedDashboard stats={stats} loading={loading} />
-
-      {/* AI Insights & Real-time Monitor */}      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      {/* Interactive Stats - 3 cards per row */}
+      <div className="mt-6">
+        <InteractiveStats stats={stats} loading={loading} />
+      </div>
+      
+      {/* AI Insights & Real-time Monitor */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 mt-8">
         <AIInsights insights={aiInsights} />
         <RealTimeMonitor />
       </div>

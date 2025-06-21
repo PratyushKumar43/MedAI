@@ -179,8 +179,8 @@ export function PrescriptionForm({ prescription, onClose, onSuccess, selectedPat
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl w-full sm:max-w-3xl lg:max-w-5xl h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto border border-blue-200">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
             {prescription ? "Edit Prescription" : "New Prescription"}

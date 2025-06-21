@@ -1,11 +1,24 @@
 // Generic AI service for medical applications
+import { GoogleGenerativeAI } from "@google/generative-ai"
+
+// Using Gemini API for chat
+const API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY
+
+// Initialize Google Generative AI
+let genAI: any = null;
+try {
+  if (API_KEY) {
+    genAI = new GoogleGenerativeAI(API_KEY);
+  } else {
+    // API key missing
+  }
+} catch (error) {
+  // Initialization failed
+}
 
 export class AIService {
   async analyzeMedicalImage(imageFile: File, symptoms?: string): Promise<any> {
     try {
-      // This would connect to your AI provider
-      console.log("Analyzing medical image with symptoms:", symptoms)
-
       // Simulate AI analysis with a delay
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
@@ -27,38 +40,71 @@ export class AIService {
         urgency: "urgent",
       }
     } catch (error) {
-      console.error("AI image analysis error:", error)
       throw new Error("Failed to analyze medical image")
     }
   }
 
   async chatWithAI(message: string, context?: any): Promise<string> {
     try {
-      // This would connect to your AI provider
-      console.log("Processing chat message with context:", context)
+      // Check if Gemini AI is available
+      if (!genAI) {
+        return this.getMockResponse(message);
+      }
+      
+      try {
+        // Create model with appropriate settings
+        const model = genAI.getGenerativeModel({ 
+          model: "gemini-2.5-flash",
+          generationConfig: {
+            temperature: 0.2,
+            topP: 0.8,
+            topK: 40,
+            maxOutputTokens: 1024,
+          },
+        });
+        
+        const prompt = `
+          You are MediOca AI, a concise medical AI assistant for healthcare providers.
 
-      // Simulate AI response with a delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Return simulated response
-      if (message.toLowerCase().includes("headache")) {
-        return "Based on the symptoms you've described, this could be tension headache, migraine, or cluster headache. I recommend tracking the frequency, duration, and any triggers. If severe or accompanied by other symptoms like fever or neck stiffness, please consult a healthcare provider immediately."
-      } else if (message.toLowerCase().includes("prescription")) {
-        return "I can help provide general information about medications, but for specific prescription recommendations, you'll need to consult with a licensed healthcare provider who can evaluate your complete medical history and current condition."
-      } else {
-        return "I'm your medical AI assistant. I can help answer medical questions, analyze symptoms, and provide general health information. Remember that AI assistance should complement, not replace, professional medical advice."
+          INSTRUCTIONS:
+          - Provide extremely concise, practical responses
+          - Use simple, non-technical language when possible
+          - Focus only on the exact question asked
+          - Keep responses under 3-4 sentences when possible
+          - Avoid lengthy introductions or conclusions
+          - Prioritize actionable information over background details
+          - Never include disclaimers or qualifiers unless medically necessary
+          - Be direct and to the point
+          
+          USER QUERY: ${message}
+          
+          Remember: Your response should be brief, focused, and immediately useful to a healthcare professional.
+        `;
+        
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
+      } catch (error) {
+        return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
       }
     } catch (error) {
-      console.error("AI chat error:", error)
-      throw new Error("Failed to get AI response")
+      return "I'm sorry, I'm currently unable to process your request. Please try again later.";
+    }
+  }
+  
+  private getMockResponse(message: string): string {
+    // Return simulated response
+    if (message.toLowerCase().includes("headache")) {
+      return "Likely causes: tension headache, migraine, or cluster headache. Track frequency, duration, and triggers. Seek immediate care if accompanied by fever, neck stiffness, or severe sudden onset.";
+    } else if (message.toLowerCase().includes("prescription")) {
+      return "For specific prescription recommendations, a licensed healthcare provider must evaluate the patient's complete medical history and current condition.";
+    } else {
+      return "I can provide concise medical information to support clinical decision-making. How can I assist you with a specific medical question?";
     }
   }
 
   async generatePrescriptionRecommendations(patientData: any): Promise<any> {
     try {
-      // This would connect to your AI provider
-      console.log("Generating prescription recommendations for:", patientData)
-
       // Simulate AI analysis with a delay
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
@@ -92,16 +138,12 @@ export class AIService {
         followUp: "Schedule follow-up in 7 days to assess response to treatment",
       }
     } catch (error) {
-      console.error("AI prescription error:", error)
       throw new Error("Failed to generate prescription recommendations")
     }
   }
 
   async predictHealthRisks(patientHistory: any): Promise<any> {
     try {
-      // This would connect to your AI provider
-      console.log("Predicting health risks based on:", patientHistory)
-
       // Simulate AI analysis with a delay
       await new Promise((resolve) => setTimeout(resolve, 2500))
 
@@ -138,7 +180,6 @@ export class AIService {
         overallRiskScore: 42,
       }
     } catch (error) {
-      console.error("AI risk prediction error:", error)
       throw new Error("Failed to predict health risks")
     }
   }

@@ -477,7 +477,7 @@ Format as JSON with the structure specified in the system prompt.`
         return {
         content: response,
         usage: estimatedTokens,
-        model: 'gemini-2.0-flash'
+        model: 'gemini-2.5-flash'
       }
     } catch (error) {
       console.error('Gemini API error:', error)

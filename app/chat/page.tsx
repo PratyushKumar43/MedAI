@@ -93,11 +93,10 @@ export default function ChatPage() {
           <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl">
             <Sparkles className="h-8 w-8 text-white" />
           </div>
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent font-poppins">
+          <div>            <h1 className="text-xl xs:text-2xl md:text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent font-poppins">
               Smart Medical Chat
             </h1>
-            <p className="text-xl text-gray-600 font-medium">
+            <p className="text-sm xs:text-base md:text-lg text-gray-600 font-medium">
               AI-powered medical assistant for healthcare professionals
             </p>
           </div>
@@ -112,9 +111,8 @@ export default function ChatPage() {
             <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-xl">
               <Sparkles className="h-6 w-6 text-white animate-pulse" />
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-white font-poppins">Medical AI Assistant</h3>
-              <p className="text-blue-100 font-medium">Advanced healthcare intelligence</p>
+            <div>              <h3 className="text-lg xs:text-xl font-bold text-white font-poppins">Medical AI Assistant</h3>
+              <p className="text-xs xs:text-sm text-blue-100 font-medium">Advanced healthcare intelligence</p>
             </div>
           </div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
