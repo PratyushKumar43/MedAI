@@ -21,7 +21,7 @@ export function RealTimeMonitor() {
         const { supabase } = await import('@/lib/api');
         const { data, error } = await supabase
           .from("patients")
-          .select("id, name, vital_signs, current_medications, diagnosis, allergies")
+          .select("id, first_name, last_name, vital_signs, current_medications, diagnosis, allergies")
           .order("created_at", { ascending: false })
           .limit(6);
           
@@ -50,7 +50,7 @@ export function RealTimeMonitor() {
           
           return {
             id: patient.id,
-            patientName: patient.name,
+            patientName: `${patient.first_name} ${patient.last_name}`,
             room: `${roomType}-${roomNumber}`,
             heartRate: heartRate,
             bloodPressure: patient.vital_signs?.blood_pressure || "120/80",

@@ -181,7 +181,7 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
           </Button>          <div>
             <h1 className="text-2xl font-bold text-gray-900">Manual Prescription Entry</h1>
             <p className="text-gray-600">
-              Patient: {patient.name} (Age: {patient.age})
+              Patient: {patient.first_name} {patient.last_name} (Age: {patient.age})
             </p>
           </div>
         </div>
@@ -292,7 +292,7 @@ export function PrescriptionWorkflow({ patient, onComplete, onCancel }: Prescrip
                 )}
                 {doctors.map((doctor) => (
                   <option key={doctor.id} value={doctor.id}>
-                    {doctor.name} - {doctor.specialization}
+                    {doctor.first_name} {doctor.last_name} - {doctor.specialization}
                   </option>
                 ))}
               </select>

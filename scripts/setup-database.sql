@@ -82,6 +82,8 @@ CREATE TABLE prescriptions (
   instructions TEXT,
   status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'cancelled')),
   prescribed_date DATE DEFAULT CURRENT_DATE,
+  medication_details JSONB,
+  is_ai_generated BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

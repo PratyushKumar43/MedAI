@@ -145,7 +145,7 @@ export default function PatientDetailsPage() {
                 <User className="h-8 w-8 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{patient.name}</h1>
+                <h1 className="text-3xl font-bold text-gray-900">{`${patient.first_name} ${patient.last_name}`}</h1>
                 <p className="text-gray-600">
                   Age: {patient.age} • Patient ID: {patient.id}
                 </p>

@@ -251,7 +251,7 @@ class GenericAIService {  private model = genAI.getGenerativeModel({
             </div>
             
             <div class="patient-info">
-              <p><strong>Patient:</strong> ${patient.name}</p>
+              <p><strong>Patient:</strong> ${patient.first_name} ${patient.last_name}</p>
               <p><strong>Date of Birth:</strong> ${patient.date_of_birth}</p>
               <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
               <p><strong>Prescription #:</strong> RX-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}</p>

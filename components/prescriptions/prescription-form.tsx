@@ -209,7 +209,7 @@ export function PrescriptionForm({ prescription, onClose, onSuccess, selectedPat
                   <option value="">Select a patient</option>
                   {patients.map((patient) => (
                     <option key={patient.id} value={patient.id}>
-                      {patient.name}
+                      {`${patient.first_name} ${patient.last_name}`}
                     </option>
                   ))}
                 </select>
@@ -230,7 +230,7 @@ export function PrescriptionForm({ prescription, onClose, onSuccess, selectedPat
                   <option value="">Select a doctor</option>
                   {doctors.map((doctor) => (
                     <option key={doctor.id} value={doctor.id}>
-                      {doctor.name} - {doctor.specialization}
+                      {`${doctor.first_name} ${doctor.last_name}`} - {doctor.specialization}
                     </option>
                   ))}
                 </select>
@@ -245,11 +245,11 @@ export function PrescriptionForm({ prescription, onClose, onSuccess, selectedPat
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium text-gray-600">Patient:</span>
-                  <p className="text-gray-900">{patients.find(p => p.id === formData.patient_id)?.name || "Unknown Patient"}</p>
+                  <p className="text-gray-900">{(patients.find(p => p.id === formData.patient_id)) ? `${patients.find(p => p.id === formData.patient_id)?.first_name} ${patients.find(p => p.id === formData.patient_id)?.last_name}` : "Unknown Patient"}</p>
                 </div>
                 <div>
                   <span className="font-medium text-gray-600">Doctor:</span>
-                  <p className="text-gray-900">{doctors.find(d => d.id === formData.doctor_id)?.name || "Unknown Doctor"}</p>
+                  <p className="text-gray-900">{(doctors.find(d => d.id === formData.doctor_id)) ? `${doctors.find(d => d.id === formData.doctor_id)?.first_name} ${doctors.find(d => d.id === formData.doctor_id)?.last_name}` : "Unknown Doctor"}</p>
                 </div>
               </div>
             </div>

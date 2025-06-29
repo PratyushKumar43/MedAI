@@ -34,7 +34,7 @@ export function PatientCard({ patient, onGeneratePrescription }: PatientCardProp
             <User className="h-6 w-6 text-blue-600" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">{patient.name}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{`${patient.first_name} ${patient.last_name}`}</h3>
             <p className="text-sm text-gray-600">Age: {age} years</p>
           </div>
           <Badge variant="outline" className="bg-green-50 text-green-700">

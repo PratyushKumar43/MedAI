@@ -32,7 +32,7 @@ export function DoctorCard({ doctor, onUpdate }: DoctorCardProps) {
     <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{doctor.name}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{`${doctor.first_name} ${doctor.last_name}`}</h3>
           <p className="text-sm text-gray-600">{doctor.specialization}</p>
         </div>
         <div className="relative">

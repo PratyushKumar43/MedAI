@@ -155,7 +155,7 @@ export default function PrescriptionDebugPage() {
                   >
                     {patients.map((patient) => (
                       <option key={patient.id} value={patient.id}>
-                        {patient.name}
+                        {`${patient.first_name} ${patient.last_name}`}
                       </option>
                     ))}
                   </select>

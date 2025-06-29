@@ -53,8 +53,8 @@ export function PrescriptionCard({ prescription, onUpdate }: PrescriptionCardPro
   }
 
   // Handle the nested data structure from Supabase joins
-  const doctorName = prescription.doctors?.name || "Unknown Doctor"
-  const patientName = prescription.patients?.name || "Unknown Patient"
+  const doctorName = prescription.doctors ? `${prescription.doctors.first_name} ${prescription.doctors.last_name}` : "Unknown Doctor"
+  const patientName = prescription.patients ? `${prescription.patients.first_name} ${prescription.patients.last_name}` : "Unknown Patient"
   const patientEmail = prescription.patients?.email || ""
 
   return (

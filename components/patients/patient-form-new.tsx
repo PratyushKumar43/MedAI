@@ -16,7 +16,8 @@ interface PatientFormProps {
 export function PatientForm({ onClose, onSuccess, patient, isEdit = false }: PatientFormProps) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<Omit<Patient, 'id'> & { vital_signs: VitalSigns }>({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     phone: "",
     date_of_birth: "",
@@ -39,7 +40,8 @@ export function PatientForm({ onClose, onSuccess, patient, isEdit = false }: Pat
   useEffect(() => {
     if (patient && isEdit) {
       setFormData({
-        name: patient.name,
+        first_name: patient.first_name,
+        last_name: patient.last_name,
         email: patient.email,
         phone: patient.phone,
         date_of_birth: patient.date_of_birth,
@@ -168,18 +170,33 @@ export function PatientForm({ onClose, onSuccess, patient, isEdit = false }: Pat
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+                  First Name
+                </label>
+                <input
+                  id="first_name"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
+                  Last Name
+                </label>
+                <input
+                  id="last_name"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                />
+              </div>
             </div>
 
             <div>
