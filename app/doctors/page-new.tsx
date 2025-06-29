@@ -32,7 +32,7 @@ export default function DoctorsPage() {
 
   const filteredDoctors = doctors.filter(
     (doctor) =>
-      doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (`${doctor.first_name} ${doctor.last_name}`).toLowerCase().includes(searchTerm.toLowerCase()) ||
       doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
@@ -90,7 +90,7 @@ export default function DoctorsPage() {
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{doctor.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{`${doctor.first_name} ${doctor.last_name}`}</h3>
                     <p className="text-sm text-gray-600">{doctor.specialization}</p>
                   </div>
                 </div>

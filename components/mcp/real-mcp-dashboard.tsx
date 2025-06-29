@@ -78,7 +78,7 @@ export function MCPDashboard({ patient, doctorId, onPrescriptionGenerated }: MCP
     setLoading(true)
     try {      const patientContext: PatientContext = {
         id: patient.id,
-        name: patient.name,
+        name: `${patient.first_name} ${patient.last_name}`,
         age: patient.age,
         gender: patient.gender || 'Not specified',
         medicalHistory: Array.isArray(patient.medical_history) 

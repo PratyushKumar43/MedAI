@@ -287,7 +287,7 @@ export function AIPrescriptionGenerator({ patient, onClose, onSavePrescription }
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium">
-                {patient.name} (Age: {patient.age})
+                {patient.first_name} {patient.last_name} (Age: {patient.age})
               </h3>
               <p className="text-sm text-gray-600">
                 Allergies: {patient.allergies.join(", ")} | Current Meds: {patient.current_medications.length} active
@@ -375,7 +375,7 @@ export function AIPrescriptionGenerator({ patient, onClose, onSavePrescription }
                   )}
                   {doctors.map((doctor) => (
                     <option key={doctor.id} value={doctor.id}>
-                      {doctor.name} - {doctor.specialization}
+                      {doctor.first_name} {doctor.last_name} - {doctor.specialization}
                     </option>
                   ))}
                 </select>

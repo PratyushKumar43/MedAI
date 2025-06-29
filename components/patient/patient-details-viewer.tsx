@@ -240,7 +240,8 @@ export function PatientDetailsViewer({
       const patientData = {
         personalInfo: {
           id: patient.id,
-          name: patient.name,
+          first_name: patient.first_name,
+          last_name: patient.last_name,
           age: patient.age,
           dateOfBirth: patient.date_of_birth,
           email: patient.email,
@@ -284,7 +285,7 @@ export function PatientDetailsViewer({
         
         const a = document.createElement("a")
         a.href = url
-        a.download = `${patient.name.replace(/\s+/g, "_")}_medical_records.html`
+        a.download = `${patient.first_name}_${patient.last_name}_medical_records.html`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
@@ -315,7 +316,7 @@ export function PatientDetailsViewer({
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Patient Medical Report - ${patientData.personalInfo.name}</title>
+        <title>Patient Medical Report - ${patientData.personalInfo.first_name} ${patientData.personalInfo.last_name}</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
             @media print {
@@ -785,7 +786,7 @@ export function PatientDetailsViewer({
             <div class="content">
                 <!-- Patient Summary -->
                 <div class="patient-summary">
-                    <div class="patient-name">${patientData.personalInfo.name}</div>
+                    <div class="patient-name">${patientData.personalInfo.first_name} ${patientData.personalInfo.last_name}</div>
                     <div class="patient-id">Patient ID: ${patientData.personalInfo.id}</div>
                     <div class="info-grid">
                         <div class="info-item">
@@ -816,7 +817,7 @@ export function PatientDetailsViewer({
                         <div class="info-grid">
                             <div class="info-item">
                                 <div class="info-label">👤 Full Name</div>
-                                <div class="info-value">${patientData.personalInfo.name}</div>
+                                <div class="info-value">${patientData.personalInfo.first_name} ${patientData.personalInfo.last_name}</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">🆔 Patient ID</div>
@@ -1097,7 +1098,7 @@ export function PatientDetailsViewer({
               <User className="h-10 w-10" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold mb-2">{patient.name}</h1>
+              <h1 className="text-3xl font-bold mb-2">{`${patient.first_name} ${patient.last_name}`}</h1>
               <div className="grid grid-cols-2 gap-4 text-blue-100">
                 <p className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2" />
@@ -1279,7 +1280,7 @@ export function PatientDetailsViewer({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <p className="font-medium">{patient.emergency_contact.name}</p>
+                    <p className="font-medium">{`${patient.emergency_contact.first_name} ${patient.emergency_contact.last_name}`}</p>
                     <p className="text-sm text-gray-600">{patient.emergency_contact.relationship}</p>
                     <p className="text-sm font-medium text-blue-600">{patient.emergency_contact.phone}</p>
                   </div>

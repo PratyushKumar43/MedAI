@@ -96,7 +96,7 @@ export class PrescriptionPDFGenerator {
     this.pdf.setFontSize(11)
     this.pdf.setFont('helvetica', 'normal')
     
-    const doctorName = prescription.doctors?.name || prescription.doctor_name || 'Dr. Unknown'
+    const doctorName = prescription.doctors ? `${prescription.doctors.first_name} ${prescription.doctors.last_name}` : prescription.doctor_name || 'Dr. Unknown'
     const specialization = prescription.doctors?.specialization || 'General Practitioner'
     const license = prescription.doctor_license || 'License: Available on request'
     
@@ -118,7 +118,7 @@ export class PrescriptionPDFGenerator {
     this.pdf.setFontSize(11)
     this.pdf.setFont('helvetica', 'normal')
     
-    const patientName = prescription.patients?.name || prescription.patient_name || 'Unknown Patient'
+    const patientName = prescription.patients ? `${prescription.patients.first_name} ${prescription.patients.last_name}` : prescription.patient_name || 'Unknown Patient'
     const patientEmail = prescription.patients?.email || 'Email not provided'
     const patientAge = prescription.patient_age || 'Age not specified'
     const patientPhone = prescription.patient_phone || 'Phone not provided'

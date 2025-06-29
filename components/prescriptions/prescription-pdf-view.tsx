@@ -21,8 +21,8 @@ export function PrescriptionPDFView({ prescription, showDownloadButton = true }:
     try {
       await downloadPrescriptionPDF({
         ...prescription,
-        doctor_name: prescription.doctors?.name || "Unknown Doctor",
-        patient_name: prescription.patients?.name || "Unknown Patient",
+        doctor_name: prescription.doctors ? `${prescription.doctors.first_name} ${prescription.doctors.last_name}` : "Unknown Doctor",
+        patient_name: prescription.patients ? `${prescription.patients.first_name} ${prescription.patients.last_name}` : "Unknown Patient",
         clinic_name: "MediOca Healthcare Platform",
         clinic_address: "Digital Healthcare Solutions",
       })
@@ -39,8 +39,8 @@ export function PrescriptionPDFView({ prescription, showDownloadButton = true }:
     try {
       await downloadPrescriptionFromHTML({
         ...prescription,
-        doctor_name: prescription.doctors?.name || "Unknown Doctor",
-        patient_name: prescription.patients?.name || "Unknown Patient",
+        doctor_name: prescription.doctors ? `${prescription.doctors.first_name} ${prescription.doctors.last_name}` : "Unknown Doctor",
+        patient_name: prescription.patients ? `${prescription.patients.first_name} ${prescription.patients.last_name}` : "Unknown Patient",
       }, "prescription-view")
     } catch (error) {
       console.error("Error downloading PDF:", error)
@@ -129,7 +129,7 @@ export function PrescriptionPDFView({ prescription, showDownloadButton = true }:
               <div>
                 <p className="text-sm text-gray-600">Name</p>
                 <p className="font-semibold text-gray-900">
-                  Dr. {prescription.doctors?.name || "Unknown Doctor"}
+                  Dr. {prescription.doctors ? `${prescription.doctors.first_name} ${prescription.doctors.last_name}` : "Unknown Doctor"}
                 </p>
               </div>
               <div>
@@ -152,7 +152,7 @@ export function PrescriptionPDFView({ prescription, showDownloadButton = true }:
               <div>
                 <p className="text-sm text-gray-600">Name</p>
                 <p className="font-semibold text-gray-900">
-                  {prescription.patients?.name || "Unknown Patient"}
+                  {prescription.patients ? `${prescription.patients.first_name} ${prescription.patients.last_name}` : "Unknown Patient"}
                 </p>
               </div>
               <div>

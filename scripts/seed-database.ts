@@ -91,6 +91,12 @@ const generatePrescriptions = (patients: any[], doctors: any[], count: number) =
     duration: getRandomElement(durations),
     instructions: 'Take with a full glass of water. Contact doctor if side effects occur.',
     created_at: faker.date.recent({ days: 90 }),
+    is_ai_generated: faker.datatype.boolean(),
+    medication_details: {
+      brand_name: faker.commerce.productName(),
+      class: faker.lorem.word(),
+      common_side_effects: [faker.lorem.word(), faker.lorem.word()],
+    },
   }));
 };
 

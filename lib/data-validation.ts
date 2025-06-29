@@ -13,8 +13,12 @@ export class DataValidator {
     const warnings: string[] = []
 
     // Required fields validation
-    if (!data.name || typeof data.name !== "string" || data.name.trim().length < 2) {
-      errors.push("Patient name is required and must be at least 2 characters")
+    if (!data.first_name || typeof data.first_name !== "string" || data.first_name.trim().length < 2) {
+      errors.push("Patient first name is required and must be at least 2 characters")
+    }
+
+    if (!data.last_name || typeof data.last_name !== "string" || data.last_name.trim().length < 2) {
+      errors.push("Patient last name is required and must be at least 2 characters")
     }
 
     if (!data.email || !this.isValidEmail(data.email)) {
@@ -41,8 +45,12 @@ export class DataValidator {
     }
 
     // Data sanitization warnings
-    if (data.name && this.containsSpecialCharacters(data.name)) {
-      warnings.push("Patient name contains special characters")
+    if (data.first_name && this.containsSpecialCharacters(data.first_name)) {
+      warnings.push("Patient first name contains special characters")
+    }
+
+    if (data.last_name && this.containsSpecialCharacters(data.last_name)) {
+      warnings.push("Patient last name contains special characters")
     }
 
     return {

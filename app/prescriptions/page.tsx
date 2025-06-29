@@ -178,9 +178,9 @@ const generatePrescriptionPDF = (patient: PatientDetails) => {
         <div class="patient-info">
             <h2>Patient Information</h2>
             <div class="info-row">
-                <span class="info-label">Name:</span>
-                <span>${patient.first_name} ${patient.last_name}</span>
-            </div>
+                <CardTitle className="text-lg font-bold text-gray-800">
+                ${patient.first_name} ${patient.last_name}
+            </CardTitle>
             <div class="info-row">
                 <span class="info-label">Age:</span>
                 <span>${patient.age} years</span>
@@ -1633,7 +1633,7 @@ export default function PrescriptionsPage() {
                         <User className="h-8 w-8 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-bold">${patient.first_name} ${patient.last_name}</h2>
+                        <h2 className="text-2xl font-bold">{`${patient.first_name} ${patient.last_name}`}</h2>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge className="bg-white/20 text-white backdrop-blur-sm border border-white/10">
                             Age: {calculateAge(patient.date_of_birth)}
@@ -1773,9 +1773,9 @@ export default function PrescriptionsPage() {
                       <User className="h-8 w-8 text-blue-600" />
                     </div>
                     <div>
-                      <h1 className="text-2xl font-bold">${a4ModalPatient.first_name} ${a4ModalPatient.last_name}</h1>
-                      <p className="text-gray-600">Patient ID: ${a4ModalPatient.id}</p>
-                      <p className="text-gray-600">Age: ${a4ModalPatient.age} years • ${a4ModalPatient.gender}</p>
+                      <h1 className="text-2xl font-bold">{`${a4ModalPatient.first_name} ${a4ModalPatient.last_name}`}</h1>
+                      <p className="text-gray-600">Patient ID: {a4ModalPatient.id}</p>
+                      <p className="text-gray-600">Age: {`${a4ModalPatient.age} years • ${a4ModalPatient.gender}`}</p>
                     </div>
                   </div>
                   <div className="text-right text-sm text-gray-600">
@@ -1793,10 +1793,10 @@ export default function PrescriptionsPage() {
                     Contact Information
                   </h3>
                   <div className="space-y-1 text-sm">
-                    <p><span className="font-medium">Email:</span> ${a4ModalPatient.email}</p>
-                    <p><span className="font-medium">Phone:</span> ${a4ModalPatient.phone}</p>
-                    <p><span className="font-medium">DOB:</span> ${formatDate(a4ModalPatient.date_of_birth)}</p>
-                    <p><span className="font-medium">Address:</span> ${a4ModalPatient.address}</p>
+                    <p><span className="font-medium">Email:</span> {a4ModalPatient.email}</p>
+                    <p><span className="font-medium">Phone:</span> {a4ModalPatient.phone}</p>
+                    <p><span className="font-medium">DOB:</span> {formatDate(a4ModalPatient.date_of_birth)}</p>
+                    <p><span className="font-medium">Address:</span> {a4ModalPatient.address}</p>
                   </div>
                 </div>
                 <div className="bg-blue-50 p-4 rounded-lg">
@@ -1805,10 +1805,10 @@ export default function PrescriptionsPage() {
                     Insurance Information
                   </h3>
                   <div className="space-y-1 text-sm">
-                    <p><span className="font-medium">Provider:</span> ${a4ModalPatient.insurance_info.provider}</p>
-                    <p><span className="font-medium">Policy:</span> ${a4ModalPatient.insurance_info.policy_number}</p>
-                    <p><span className="font-medium">Group:</span> ${a4ModalPatient.insurance_info.group_number}</p>
-                    <p><span className="font-medium">Type:</span> ${a4ModalPatient.insurance_info.coverage_type}</p>
+                    <p><span className="font-medium">Provider:</span> {a4ModalPatient.insurance_info.provider}</p>
+                    <p><span className="font-medium">Policy:</span> {a4ModalPatient.insurance_info.policy_number}</p>
+                    <p><span className="font-medium">Group:</span> {a4ModalPatient.insurance_info.group_number}</p>
+                    <p><span className="font-medium">Type:</span> {a4ModalPatient.insurance_info.coverage_type}</p>
                   </div>
                 </div>
               </div>
