@@ -45,7 +45,11 @@ export const apiService = {
   async getDoctors() {
     try {
       console.log("Fetching doctors...")
-      const { data, error } = await supabase.from("doctors").select("*").order("created_at", { ascending: false })
+      const { data, error } = await supabase
+        .from("doctors")
+        .select("*")
+        
+        .order("created_at", { ascending: false })
 
       if (error) {
         console.error("Error fetching doctors:", error)
@@ -151,8 +155,8 @@ export const apiService = {
         .from("prescriptions")
         .select(`
         *,
-        doctors:doctor_id(id, name, specialization, email),
-        patients:patient_id(id, name, email, phone)
+        doctors:doctor_id(id, first_name, last_name, specialization, email),
+        patients:patient_id(id, first_name, last_name, email, phone, date_of_birth, address)
       `)
         .order("created_at", { ascending: false })
 
@@ -195,8 +199,8 @@ export const apiService = {
         .insert([prescriptionData])
         .select(`
         *,
-        doctors:doctor_id(id, name, specialization),
-        patients:patient_id(id, name, email)
+        doctors:doctor_id(id, first_name, last_name, specialization, email),
+        patients:patient_id(id, first_name, last_name, email, phone, date_of_birth, address)
       `)
 
       if (error) {
@@ -228,8 +232,8 @@ export const apiService = {
         .eq("id", id)
         .select(`
         *,
-        doctors:doctor_id(id, name, specialization),
-        patients:patient_id(id, name, email)
+        doctors:doctor_id(id, first_name, last_name, specialization, email),
+        patients:patient_id(id, first_name, last_name, email, phone, date_of_birth, address)
       `)
 
       if (error) {
@@ -271,8 +275,8 @@ export const apiService = {
         .from("prescriptions")
         .select(`
         *,
-        doctors:doctor_id(id, name, specialization),
-        patients:patient_id(id, name, email)
+        doctors:doctor_id(id, first_name, last_name, specialization, email),
+        patients:patient_id(id, first_name, last_name, email, phone, date_of_birth, address)
       `)
         .eq("patient_id", patientId)
         .order("created_at", { ascending: false })
@@ -298,8 +302,8 @@ export const apiService = {
         .from("prescriptions")
         .select(`
         *,
-        doctors:doctor_id(id, name, specialization),
-        patients:patient_id(id, name, email)
+        doctors:doctor_id(id, first_name, last_name, specialization, email),
+        patients:patient_id(id, first_name, last_name, email, phone, date_of_birth, address)
       `)
         .eq("doctor_id", doctorId)
         .order("created_at", { ascending: false })
@@ -326,8 +330,8 @@ export const apiService = {
         .from("prescriptions")
         .select(`
           *,
-          doctors:doctor_id(id, name, specialization),
-          patients:patient_id(id, name, email)
+          doctors:doctor_id(id, first_name, last_name, specialization, email),
+          patients:patient_id(id, first_name, last_name, email, phone, date_of_birth, address)
         `)
         .eq("id", id)
         .single()
@@ -521,6 +525,175 @@ export const apiService = {
     } catch (error: any) {
       console.error("Error in deletePrescriptionGroup:", error)
       throw error
+    }
+  },
+
+  async getAnalyticsSummary() {
+    try {
+      console.log("Fetching analytics summary...");
+
+      const [
+        { count: totalPatients, error: patientsError },
+        { count: totalDoctors, error: doctorsError },
+        { count: totalAppointments, error: appointmentsError },
+        { count: emergencyCases, error: emergencyCasesError }
+      ] = await Promise.all([
+        supabase.from("patients").select("*", { count: "exact", head: true }),
+        supabase.from("doctors").select("*", { count: "exact", head: true }),
+        supabase.from("appointments").select("*", { count: "exact", head: true }),
+        supabase.from("emergency_cases").select("*", { count: "exact", head: true })
+      ]);
+
+      if (patientsError) throw patientsError;
+      if (doctorsError) throw doctorsError;
+      if (appointmentsError) throw appointmentsError;
+      if (emergencyCasesError) throw emergencyCasesError;
+
+      const summary = {
+        totalPatients: totalPatients ?? 0,
+        totalDoctors: totalDoctors ?? 0,
+        totalAppointments: totalAppointments ?? 0,
+        emergencyCases: emergencyCases ?? 0,
+      };
+
+      console.log("Analytics summary fetched successfully:", summary);
+      return { data: summary };
+    } catch (error: any) {
+      console.error("Error in getAnalyticsSummary:", error);
+      throw error;
+    }
+  },
+
+  async getPatientVisitsTrend(timeRange: '7d' | '30d' | '90d' | '1y') {
+    try {
+      console.log(`Fetching patient visits trend for ${timeRange}...`);
+
+      const getISODate = (daysAgo: number) => new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+
+      let startDate: string;
+      switch (timeRange) {
+        case '7d': startDate = getISODate(7); break;
+        case '30d': startDate = getISODate(30); break;
+        case '90d': startDate = getISODate(90); break;
+        case '1y': startDate = getISODate(365); break;
+        default: startDate = getISODate(30);
+      }
+
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('created_at')
+        .gte('created_at', startDate)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      
+      console.log(`Fetched ${data?.length || 0} appointments for trend.`);
+      return { data: data || [] };
+
+    } catch (error: any) {
+      console.error("Error in getPatientVisitsTrend:", error);
+      throw error;
+    }
+  },
+
+  async getDepartmentStats() {
+    try {
+      console.log("Fetching department stats...");
+
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`id, doctors (specialization)`);
+
+      if (error) {
+        console.error("Error fetching department stats:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        return { data: [] };
+      }
+
+      const stats: { [key: string]: { patients: number } } = {};
+      
+      data.forEach((appointment: any) => {
+        const department = appointment.doctors?.specialization || 'General';
+        if (!stats[department]) {
+          stats[department] = { patients: 0 };
+        }
+        stats[department].patients += 1;
+      });
+
+      const departmentStats = Object.entries(stats).map(([department, { patients }]) => ({
+        department,
+        patients,
+        revenue: patients * 500 // Dummy revenue for now
+      }));
+      
+      console.log("Department stats fetched successfully:", departmentStats);
+      return { data: departmentStats };
+
+    } catch (error: any) {
+      console.error("Error in getDepartmentStats:", error);
+      throw error;
+    }
+  },
+
+  async getPatientVitals() {
+    try {
+      console.log("Fetching patient vitals...");
+      const { data, error } = await supabase
+        .from('patient_vitals')
+        .select(`
+          id,
+          heart_rate,
+          blood_pressure,
+          temperature,
+          oxygen_saturation,
+          respiratory_rate,
+          last_updated,
+          patients (
+            id,
+            first_name,
+            last_name,
+            room_number
+          ),
+          doctors (
+            id,
+            first_name,
+            last_name,
+            specialization
+          )
+        `)
+        .order('last_updated', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching patient vitals:", error);
+        throw error;
+      }
+
+      if (!data) {
+        return { data: [] };
+      }
+
+      const transformedData = data.map((vital: any) => ({
+        id: vital.id,
+        patientName: vital.patients ? `${vital.patients.first_name} ${vital.patients.last_name}`.trim() : 'Unknown Patient',
+        room: vital.patients?.room_number || 'N/A',
+        heartRate: vital.heart_rate,
+        bloodPressure: vital.blood_pressure,
+        temperature: vital.temperature,
+        oxygenSat: vital.oxygen_saturation,
+        respiratoryRate: vital.respiratory_rate,
+        lastUpdated: new Date(vital.last_updated),
+        status: 'stable' // Placeholder, will be calculated on client
+      }));
+
+      console.log("Patient vitals fetched successfully:", transformedData.length, "records");
+      return { data: transformedData };
+
+    } catch (error: any) {
+      console.error("Error in getPatientVitals:", error);
+      throw error;
     }
   },
 }

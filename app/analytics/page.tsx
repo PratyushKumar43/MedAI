@@ -1,38 +1,88 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { BarChart3, TrendingUp, Users, Activity, Calendar, PieChart } from "lucide-react"
+import { apiService } from "@/lib/api"
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "1y">("30d")
   const [analytics, setAnalytics] = useState({
-    totalPatients: 1247,
-    totalDoctors: 45,
-    totalAppointments: 892,
-    emergencyCases: 23,
-    patientSatisfaction: 4.8,
+    totalPatients: 0,
+    totalDoctors: 0,
+    totalAppointments: 0,
+    emergencyCases: 0,
+    patientSatisfaction: 4.8, // These will remain static for now
     averageWaitTime: 12,
     revenueGrowth: 15.3,
     operationalEfficiency: 87,
-  })
+  });
 
-  const chartData = {
-    patientVisits: [
-      { month: "Jan", visits: 120 },
-      { month: "Feb", visits: 135 },
-      { month: "Mar", visits: 148 },
-      { month: "Apr", visits: 162 },
-      { month: "May", visits: 178 },
-      { month: "Jun", visits: 195 },
-    ],
-    departmentStats: [
-      { department: "Cardiology", patients: 245, revenue: 125000 },
-      { department: "Neurology", patients: 189, revenue: 98000 },
-      { department: "Orthopedics", patients: 167, revenue: 87000 },
-      { department: "Pediatrics", patients: 203, revenue: 76000 },
-      { department: "Emergency", patients: 298, revenue: 145000 },
-    ],
-  }
+  const [chartData, setChartData] = useState<{
+    patientVisits: { month: string; visits: number }[];
+    departmentStats: { department: string; patients: number; revenue: number }[];
+  }>({ 
+    patientVisits: [], 
+    departmentStats: [] 
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnalyticsData = async () => {
+      setLoading(true);
+      try {
+        const summaryRes = await apiService.getAnalyticsSummary();
+        if (summaryRes.data) {
+          setAnalytics(prev => ({ ...prev, ...summaryRes.data }));
+        }
+
+        const visitsRes = await apiService.getPatientVisitsTrend(timeRange);
+        const departmentsRes = await apiService.getDepartmentStats();
+
+        const processVisits = (rawData: { created_at: string }[]) => {
+            if (!rawData) return [];
+            const visitsByPeriod: Map<string, number> = new Map();
+            let formatKey: (date: Date) => string;
+            
+            if (timeRange === '7d' || timeRange === '30d') {
+                formatKey = (date) => date.toISOString().split('T')[0];
+            } else {
+                formatKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            }
+
+            rawData.forEach(item => {
+                const date = new Date(item.created_at);
+                const key = formatKey(date);
+                visitsByPeriod.set(key, (visitsByPeriod.get(key) || 0) + 1);
+            });
+
+            let formatLabel: (key: string) => string;
+            if (timeRange === '7d' || timeRange === '30d') {
+                formatLabel = (key) => new Date(key + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            } else {
+                formatLabel = (key) => new Date(key + '-02').toLocaleDateString('en-US', { year: '2-digit', month: 'short' });
+            }
+
+            return Array.from(visitsByPeriod.entries()).map(([key, visits]) => ({
+                month: formatLabel(key),
+                visits,
+            }));
+        };
+
+        setChartData({
+          patientVisits: processVisits(visitsRes.data),
+          departmentStats: departmentsRes.data || [],
+        });
+
+      } catch (error) {
+        console.error("Failed to fetch analytics data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalyticsData();
+  }, [timeRange]);
 
   return (
     <div className="space-y-8 animate-fade-in">

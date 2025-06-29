@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Shield, MapPin, Phone, Clock, AlertTriangle, Truck, Navigation } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { supabase } from "@/lib/api"
 
 interface EmergencyCase {
   id: string
@@ -29,47 +30,86 @@ interface UserLocation {
 export default function EmergencyPage() {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
-  const [emergencyCases, setEmergencyCases] = useState<EmergencyCase[]>([
-    {
-      id: "1",
-      patientName: "John Smith",
-      location: {
-        address: "123 Main St, Downtown",
-        coordinates: { lat: 40.7128, lng: -74.006 },
-      },
-      emergencyType: "Cardiac Arrest",
-      severity: "critical",
-      status: "en-route",
-      timeReported: new Date(Date.now() - 15 * 60 * 1000),
-      estimatedArrival: new Date(Date.now() + 5 * 60 * 1000),
-      ambulanceId: "AMB-001",
-      description: "Patient experiencing chest pain and difficulty breathing",
-    },
-    {
-      id: "2",
-      patientName: "Maria Garcia",
-      location: {
-        address: "456 Oak Ave, Midtown",
-        coordinates: { lat: 40.7589, lng: -73.9851 },
-      },
-      emergencyType: "Severe Injury",
-      severity: "high",
-      status: "dispatched",
-      timeReported: new Date(Date.now() - 8 * 60 * 1000),
-      estimatedArrival: new Date(Date.now() + 12 * 60 * 1000),
-      ambulanceId: "AMB-003",
-      description: "Fall from height, possible fractures",
-    },
-  ])
+  const [emergencyCases, setEmergencyCases] = useState<EmergencyCase[]>([])
 
   const [showBookingForm, setShowBookingForm] = useState(false)
-  const [bookingForm, setBookingForm] = useState({
+  interface BookingForm {
+    patientName: string;
+    emergencyType: string;
+    severity: "low" | "medium" | "high" | "critical";
+    description: string;
+    contactNumber: string;
+    manualAddress: string;
+  }
+
+  const [bookingForm, setBookingForm] = useState<BookingForm>({
     patientName: "",
     emergencyType: "",
     severity: "medium" as const,
     description: "",
     contactNumber: "",
+    manualAddress: "",
   })
+
+  useEffect(() => {
+    // Fetch latest emergency cases from database
+    const fetchCases = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('emergency_cases')
+          .select('*')
+          .order('time_reported', { ascending: false })
+        if (!error && data) {
+          const formattedCases = data.map((c: any) => ({
+            ...c,
+            patientName: c.patient_name,
+            emergencyType: c.emergency_type,
+            timeReported: new Date(c.time_reported),
+            estimatedArrival: c.estimated_arrival ? new Date(c.estimated_arrival) : undefined,
+            ambulanceId: c.ambulance_id,
+          }));
+          setEmergencyCases(formattedCases);
+        }
+      } catch (err) {
+        console.error('Failed to fetch emergency cases', err)
+      }
+    }
+    fetchCases()
+  }, [])
+
+  const requestBrowserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation not supported in this browser");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation({ latitude, longitude });
+        try {
+          const address = await reverseGeocode(latitude, longitude);
+          setUserLocation((prev) => (prev ? { ...prev, address } : null));
+        } catch (err) {
+          console.error("Address lookup failed", err);
+        }
+      },
+      (error) => {
+        setLocationError("Unable to access GPS location.");
+        console.error("Geolocation error:", error);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  };
+
+  const handleRetryLocation = () => {
+    setLocationError(null);
+    requestBrowserLocation();
+  };
+
+  // initial location fetch on mount
+  useEffect(() => {
+    requestBrowserLocation();
+  }, []);
 
   useEffect(() => {
     // Get user's current location
@@ -100,14 +140,18 @@ export default function EmergencyPage() {
   }, [])
 
   const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
-    // Simulated reverse geocoding - in real app, use actual service
-    const addresses = [
-      "123 Emergency St, Healthcare District",
-      "456 Medical Ave, City Center",
-      "789 Hospital Blvd, Downtown",
-      "321 Clinic Road, Suburbs",
-    ]
-    return addresses[Math.floor(Math.random() * addresses.length)]
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+        headers: {
+          "User-Agent": "MedAIApp/1.0 (+https://medai.local)"
+        }
+      })
+      const data = await response.json()
+      return data.display_name || `${lat}, ${lng}`
+    } catch (err) {
+      console.error("Reverse geocode failed", err)
+      return `${lat}, ${lng}`
+    }
   }
 
   const getSeverityColor = (severity: string) => {
@@ -143,8 +187,8 @@ export default function EmergencyPage() {
   }
 
   const handleBookAmbulance = async () => {
-    if (!userLocation) {
-      alert("Location access is required to book an ambulance")
+    if (!userLocation && !bookingForm.manualAddress) {
+      alert("Please provide or enable location to book an ambulance")
       return
     }
 
@@ -152,8 +196,8 @@ export default function EmergencyPage() {
       id: Date.now().toString(),
       patientName: bookingForm.patientName,
       location: {
-        address: userLocation.address || `${userLocation.latitude}, ${userLocation.longitude}`,
-        coordinates: { lat: userLocation.latitude, lng: userLocation.longitude },
+        address: userLocation ? (userLocation.address || `${userLocation.latitude}, ${userLocation.longitude}`) : bookingForm.manualAddress,
+        coordinates: userLocation ? { lat: userLocation.latitude, lng: userLocation.longitude } : { lat: 0, lng: 0 },
       },
       emergencyType: bookingForm.emergencyType,
       severity: bookingForm.severity,
@@ -171,6 +215,7 @@ export default function EmergencyPage() {
       severity: "medium",
       description: "",
       contactNumber: "",
+      manualAddress: "",
     })
 
     // Simulate dispatch process
@@ -258,7 +303,7 @@ export default function EmergencyPage() {
               <div>
                 <p className="text-sm text-red-600 mb-2">{locationError}</p>
                 <button
-                  onClick={() => window.location.reload()}
+                  onClick={handleRetryLocation}
                   className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full hover:bg-red-200 transition-colors"
                 >
                   Retry Location
@@ -283,12 +328,16 @@ export default function EmergencyPage() {
               Book Ambulance
             </Button>
 
-            <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold">
+            <Button
+              onClick={() => (window.location.href = 'tel:112')}
+              className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold">
               <Phone className="h-5 w-5 mr-2" />
-              Call 911
+              Call 112
             </Button>
 
-            <Button className="w-full glass-morphism border border-white/30 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-semibold">
+            <Button
+              onClick={() => setShowBookingForm(true)}
+              className="w-full glass-morphism border border-white/30 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-semibold">
               <AlertTriangle className="h-5 w-5 mr-2" />
               Report Emergency
             </Button>
@@ -300,15 +349,15 @@ export default function EmergencyPage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Emergency:</span>
-                <span className="font-semibold text-red-600">911</span>
+                <span className="font-semibold text-red-600">112</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Hospital Direct:</span>
-                <span className="font-semibold text-blue-600">(555) 123-4567</span>
+                <span className="font-semibold text-blue-600">108</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Poison Control:</span>
-                <span className="font-semibold text-green-600">(800) 222-1222</span>
+                <span className="text-gray-600">Fire Control:</span>
+                <span className="font-semibold text-green-600">115</span>
               </div>
             </div>
           </div>
@@ -414,7 +463,7 @@ export default function EmergencyPage() {
       {/* Booking Form Modal */}
       {showBookingForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="glass-morphism rounded-3xl shadow-2xl border border-white/30 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl border border-white/30 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-white/20">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg xs:text-xl font-bold text-gray-900 font-poppins">Book Emergency Ambulance</h3>
@@ -487,13 +536,13 @@ export default function EmergencyPage() {
                 <textarea
                   value={bookingForm.description}
                   onChange={(e) => setBookingForm((prev) => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-4 py-3 glass-morphism border border-white/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
                   rows={3}
                   placeholder="Describe the emergency situation..."
                 />
               </div>
 
-              {userLocation && (
+              {userLocation ? (
                 <div className="glass-morphism rounded-xl p-4 border border-white/30">
                   <div className="flex items-center space-x-2 mb-2">
                     <MapPin className="h-4 w-4 text-blue-600" />
@@ -504,6 +553,20 @@ export default function EmergencyPage() {
                     {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}
                   </p>
                 </div>
+              ) : (
+                <div className="glass-morphism rounded-xl p-4 border border-white/30">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <MapPin className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-semibold text-gray-900">Emergency Location</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={bookingForm.manualAddress}
+                    onChange={(e) => setBookingForm((prev) => ({ ...prev, manualAddress: e.target.value }))}
+                    placeholder="Enter address or landmark"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded focus:outline-none"
+                  />
+                </div>
               )}
             </div>
 
@@ -511,13 +574,13 @@ export default function EmergencyPage() {
               <div className="flex space-x-4">
                 <button
                   onClick={() => setShowBookingForm(false)}
-                  className="flex-1 glass-morphism border border-white/30 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-semibold"
+                  className="flex-1 bg-white border border-gray-200 py-3 rounded-xl hover:bg-gray-50 transition-all duration-300 font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleBookAmbulance}
-                  disabled={!bookingForm.patientName || !bookingForm.emergencyType || !userLocation}
+                  disabled={!bookingForm.patientName || !bookingForm.emergencyType || (!userLocation && !bookingForm.manualAddress.trim())}
                   className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Truck className="h-4 w-4 mr-2 inline" />

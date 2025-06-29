@@ -25,7 +25,7 @@ const generatePrescriptionPDF = (patient: PatientDetails) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Medical Prescription - ${patient.name}</title>
+        <title>Medical Prescription - ${patient.first_name} ${patient.last_name}</title>
         <style>
             @media print {
                 body { margin: 0; }
@@ -179,7 +179,7 @@ const generatePrescriptionPDF = (patient: PatientDetails) => {
             <h2>Patient Information</h2>
             <div class="info-row">
                 <span class="info-label">Name:</span>
-                <span>${patient.name}</span>
+                <span>${patient.first_name} ${patient.last_name}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Age:</span>
@@ -362,7 +362,8 @@ export default function PrescriptionsPage() {
           coverage_type: "PPO",
         },
         emergency_contact: {
-          name: "Emergency Contact",
+          first_name: "Emergency",
+          last_name: "Contact",
           relationship: "Spouse",
           phone: "(555) 123-4567",
         },
@@ -396,7 +397,7 @@ export default function PrescriptionsPage() {
     }
   }
 
-  const handleViewPatientDetails = async (patientId: string, patientName: string) => {
+  const handleViewPatientDetails = async (patientId: string, patientFirstName: string, patientLastName: string) => {
     try {
       // Find patient in existing data or fetch from API
       let patient = patients.find(p => p.id === patientId)
@@ -452,7 +453,8 @@ export default function PrescriptionsPage() {
             coverage_type: "PPO",
           },
           emergency_contact: {
-            name: "Jane Doe",
+            first_name: "Jane",
+            last_name: "Doe",
             relationship: "Spouse",
             phone: "(555) 123-4567",
           },
@@ -479,12 +481,13 @@ export default function PrescriptionsPage() {
   const handleDownloadPatientData = async (patient: PatientDetails) => {
     try {
       // Get prescriptions for this patient
-      const patientPrescriptions = prescriptions.filter(p => p.patients?.name === patient.name)
+      const patientPrescriptions = prescriptions.filter(p => p.patient_id === patient.id)
       
       const patientData = {
         personalInfo: {
           id: patient.id,
-          name: patient.name,
+          first_name: patient.first_name,
+          last_name: patient.last_name,
           age: patient.age,
           dateOfBirth: patient.date_of_birth,
           email: patient.email,
@@ -528,7 +531,7 @@ export default function PrescriptionsPage() {
         
         const a = document.createElement("a")
         a.href = url
-        a.download = `${patient.name.replace(/\s+/g, "_")}_medical_report.html`
+        a.download = `${patient.first_name.replace(/\s+/g, "_")}_${patient.last_name.replace(/\s+/g, "_")}_medical_report.html`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
@@ -564,14 +567,13 @@ export default function PrescriptionsPage() {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Patient Medical Report - ${patientData.personalInfo.name}</title>
+        <title>Patient Medical Report - ${patientData.personalInfo.first_name} ${patientData.personalInfo.last_name}</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
         <style>
             @media print {
                 body { margin: 0; -webkit-print-color-adjust: exact; }
                 .no-print { display: none; }
                 .page-break { page-break-before: always; }
-                .section { break-inside: avoid; }
             }
             body {
                 font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
@@ -937,7 +939,7 @@ export default function PrescriptionsPage() {
             </div>
             <div class="content">
                 <div class="patient-summary">
-                    <div class="patient-name">${patientData.personalInfo.name}</div>
+                    <div class="patient-name">${patientData.personalInfo.first_name} ${patientData.personalInfo.last_name}</div>
                     <div class="patient-id">Patient ID: ${patientData.personalInfo.id}</div>
                     <div class="info-grid">
                         <div class="info-item">
@@ -1029,7 +1031,7 @@ export default function PrescriptionsPage() {
                                             <strong>Prescribed:</strong> ${new Date(prescription.created_at).toLocaleDateString()}
                                         </div>
                                         <div class="prescription-detail">
-                                            <strong>Doctor:</strong> ${prescription.doctor || 'Dr. Smith'}
+                                            <strong>Doctor:</strong> ${prescription.doctors?.first_name} ${prescription.doctors?.last_name || 'Not specified'}
                                         </div>
                                     </div>
                                     ${prescription.instructions ? `<div style="margin-top: 7px; padding: 7px; background: #f0f9ff; border-radius: 6px; border-left: 3px solid #06b6d4;"><strong>Instructions:</strong> ${prescription.instructions}</div>` : ''}
@@ -1101,8 +1103,8 @@ export default function PrescriptionsPage() {
     const searchLower = searchTerm.toLowerCase()
     return (
       prescription.medication?.toLowerCase().includes(searchLower) ||
-      prescription.patients?.name?.toLowerCase().includes(searchLower) ||
-      prescription.doctors?.name?.toLowerCase().includes(searchLower) ||
+      `${prescription.patients?.first_name} ${prescription.patients?.last_name}`.toLowerCase().includes(searchLower) ||
+      `${prescription.doctors?.first_name} ${prescription.doctors?.last_name}`.toLowerCase().includes(searchLower) ||
       prescription.dosage?.toLowerCase().includes(searchLower) ||
       prescription.frequency?.toLowerCase().includes(searchLower)
     )
@@ -1110,14 +1112,15 @@ export default function PrescriptionsPage() {
 
   // Group prescriptions by patient
   const groupedPrescriptions = filteredPrescriptions.reduce((acc, prescription) => {
-    const patientKey = `${prescription.patient_id}-${prescription.patients?.name || 'Unknown'}`
+    const patientKey = `${prescription.patient_id}-${prescription.patients?.first_name || 'Unknown'} ${prescription.patients?.last_name || 'Unknown'}`
     
     if (!acc[patientKey]) {
       acc[patientKey] = {
         patient: {
           id: prescription.patient_id,
-          name: prescription.patients?.name || 'Unknown Patient',
-          email: prescription.patients?.email || ''
+          first_name: prescription.patients?.first_name || 'Unknown',
+          last_name: prescription.patients?.last_name || 'Unknown',
+          email: prescription.patients?.email || '',
         },
         medications: [],
         latestDate: prescription.created_at || '',
@@ -1132,7 +1135,7 @@ export default function PrescriptionsPage() {
       frequency: prescription.frequency,
       duration: prescription.duration,
       instructions: prescription.instructions,
-      doctor: prescription.doctors?.name || 'Not specified',
+      doctor: `${prescription.doctors?.first_name} ${prescription.doctors?.last_name || 'Not specified'}`,
       doctorSpecialization: prescription.doctors?.specialization || '',
       created_at: prescription.created_at,
       is_ai_generated: prescription.is_ai_generated || prescription.instructions?.includes("AI Generated")
@@ -1153,7 +1156,7 @@ export default function PrescriptionsPage() {
   const filteredPatients = patients.filter((patient) => {
     const searchLower = searchTerm.toLowerCase()
     return (
-      patient.name?.toLowerCase().includes(searchLower) ||
+      `${patient.first_name} ${patient.last_name}`.toLowerCase().includes(searchLower) ||
       patient.email?.toLowerCase().includes(searchLower) ||
       patient.phone?.toLowerCase().includes(searchLower)
     )
@@ -1377,7 +1380,7 @@ export default function PrescriptionsPage() {
                             <User className="h-6 w-6 text-white" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-xl text-white">{group.patient.name}</h3>
+                            <h3 className="font-semibold text-xl text-white">{group.patient.first_name} {group.patient.last_name}</h3>
                             <p className="text-blue-100 text-sm">Patient ID: {group.patient.id?.slice(0, 8) || "N/A"}</p>
                           </div>
                         </div>
@@ -1524,7 +1527,8 @@ export default function PrescriptionsPage() {
                                     coverage_type: "N/A"
                                   },
                                   emergency_contact: {
-                                    name: "Not specified",
+                                    first_name: "Not specified",
+                                    last_name: "Not specified",
                                     relationship: "N/A",
                                     phone: "N/A"
                                   }
@@ -1567,7 +1571,8 @@ export default function PrescriptionsPage() {
                                   coverage_type: "N/A"
                                 },
                                 emergency_contact: {
-                                  name: "Not specified",
+                                  first_name: "Not specified",
+                                  last_name: "Not specified",
                                   relationship: "N/A",
                                   phone: "N/A"
                                 }
@@ -1628,7 +1633,7 @@ export default function PrescriptionsPage() {
                         <User className="h-8 w-8 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-white">{patient.name}</h3>
+                        <h2 className="text-2xl font-bold">${patient.first_name} ${patient.last_name}</h2>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge className="bg-white/20 text-white backdrop-blur-sm border border-white/10">
                             Age: {calculateAge(patient.date_of_birth)}
@@ -1768,9 +1773,9 @@ export default function PrescriptionsPage() {
                       <User className="h-8 w-8 text-blue-600" />
                     </div>
                     <div>
-                      <h1 className="text-2xl font-bold text-gray-900">{a4ModalPatient.name}</h1>
-                      <p className="text-gray-600">Patient ID: {a4ModalPatient.id}</p>
-                      <p className="text-gray-600">Age: {a4ModalPatient.age} years • {a4ModalPatient.gender}</p>
+                      <h1 className="text-2xl font-bold">${a4ModalPatient.first_name} ${a4ModalPatient.last_name}</h1>
+                      <p className="text-gray-600">Patient ID: ${a4ModalPatient.id}</p>
+                      <p className="text-gray-600">Age: ${a4ModalPatient.age} years • ${a4ModalPatient.gender}</p>
                     </div>
                   </div>
                   <div className="text-right text-sm text-gray-600">
@@ -1788,10 +1793,10 @@ export default function PrescriptionsPage() {
                     Contact Information
                   </h3>
                   <div className="space-y-1 text-sm">
-                    <p><span className="font-medium">Email:</span> {a4ModalPatient.email}</p>
-                    <p><span className="font-medium">Phone:</span> {a4ModalPatient.phone}</p>
-                    <p><span className="font-medium">DOB:</span> {formatDate(a4ModalPatient.date_of_birth)}</p>
-                    <p><span className="font-medium">Address:</span> {a4ModalPatient.address}</p>
+                    <p><span className="font-medium">Email:</span> ${a4ModalPatient.email}</p>
+                    <p><span className="font-medium">Phone:</span> ${a4ModalPatient.phone}</p>
+                    <p><span className="font-medium">DOB:</span> ${formatDate(a4ModalPatient.date_of_birth)}</p>
+                    <p><span className="font-medium">Address:</span> ${a4ModalPatient.address}</p>
                   </div>
                 </div>
                 <div className="bg-blue-50 p-4 rounded-lg">
@@ -1800,10 +1805,10 @@ export default function PrescriptionsPage() {
                     Insurance Information
                   </h3>
                   <div className="space-y-1 text-sm">
-                    <p><span className="font-medium">Provider:</span> {a4ModalPatient.insurance_info.provider}</p>
-                    <p><span className="font-medium">Policy:</span> {a4ModalPatient.insurance_info.policy_number}</p>
-                    <p><span className="font-medium">Group:</span> {a4ModalPatient.insurance_info.group_number}</p>
-                    <p><span className="font-medium">Type:</span> {a4ModalPatient.insurance_info.coverage_type}</p>
+                    <p><span className="font-medium">Provider:</span> ${a4ModalPatient.insurance_info.provider}</p>
+                    <p><span className="font-medium">Policy:</span> ${a4ModalPatient.insurance_info.policy_number}</p>
+                    <p><span className="font-medium">Group:</span> ${a4ModalPatient.insurance_info.group_number}</p>
+                    <p><span className="font-medium">Type:</span> ${a4ModalPatient.insurance_info.coverage_type}</p>
                   </div>
                 </div>
               </div>
@@ -1862,7 +1867,7 @@ export default function PrescriptionsPage() {
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
                   {prescriptions
-                    .filter(p => p.patients?.name === a4ModalPatient.name)
+                    .filter(p => p.patients?.first_name === a4ModalPatient.first_name && p.patients?.last_name === a4ModalPatient.last_name)
                     .slice(0, 4)
                     .map((prescription, index) => (
                       <div key={index} className="bg-green-50 p-3 rounded-lg border border-green-200">
@@ -1874,7 +1879,7 @@ export default function PrescriptionsPage() {
                           </div>
                           <div className="text-right text-xs text-green-600">
                             <p>{formatDate(prescription.created_at || new Date())}</p>
-                            <p>{prescription.doctors?.name}</p>
+                            <p>{prescription.doctors?.first_name} {prescription.doctors?.last_name}</p>
                           </div>
                         </div>
                       </div>
@@ -1939,7 +1944,7 @@ export default function PrescriptionsPage() {
                 <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                   <h3 className="font-semibold text-green-900 mb-2">📞 Emergency Contact</h3>
                   <div className="text-sm space-y-1">
-                    <p><span className="font-medium">Name:</span> {a4ModalPatient.emergency_contact.name}</p>
+                    <p><span className="font-medium">Name:</span> {a4ModalPatient.emergency_contact.first_name} {a4ModalPatient.emergency_contact.last_name}</p>
                     <p><span className="font-medium">Relationship:</span> {a4ModalPatient.emergency_contact.relationship}</p>
                     <p><span className="font-medium">Phone:</span> {a4ModalPatient.emergency_contact.phone}</p>
                   </div>

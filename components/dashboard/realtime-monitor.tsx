@@ -272,7 +272,7 @@ export function RealTimeMonitor() {
           <div className="animate-spin h-12 w-12 border-4 border-red-500 border-t-transparent rounded-full"></div>
         </div>
       ) : (
-        <div className="grid gap-6 max-h-[600px] overflow-y-auto pr-2">
+        <div className="grid gap-6 max-h-[480px] overflow-y-auto pr-2">
           {vitals.map((vital) => (
             <div
               key={vital.id}
@@ -423,7 +423,7 @@ export function RealTimeMonitor() {
         </div>
       )}
 
-      <div className="mt-6 pt-4 border-t border-gray-200">
+      <div className="mt-4 space-y-4 max-h-[500px] overflow-y-auto">
         <button className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 font-medium">
           View Complete Patient Vitals
         </button>

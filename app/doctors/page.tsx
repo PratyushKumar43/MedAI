@@ -3,9 +3,25 @@
 import { useState, useEffect } from "react"
 import { apiService } from "@/lib/api"
 import type { Doctor } from "@/types/doctor"
+import { useAuth } from "@/providers/auth-provider"
 
 export default function DoctorsPage() {
   const [doctors, setDoctors] = useState<Doctor[]>([])
+  const { user } = useAuth()
+
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      return `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+    }
+    return user?.email?.split('@')[0] || 'Doctor'
+  }
+
+  const getUserInitials = () => {
+    const name = getUserDisplayName()
+    const words = name.split(' ')
+    if (words.length === 1) return words[0].charAt(0).toUpperCase()
+    return `${words[0].charAt(0)}${words[1].charAt(0)}`.toUpperCase()
+  }
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentDate, setCurrentDate] = useState<Date | null>(null)
@@ -34,7 +50,8 @@ export default function DoctorsPage() {
   }
   const filteredDoctors = doctors.filter(
     (doctor) =>
-      doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doctor.specialization?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
   
@@ -52,14 +69,14 @@ export default function DoctorsPage() {
               <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                 {/* Avatar */}
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-xl ring-4 ring-white/30">
-                  SJ
+                  {getUserInitials()}
                 </div>
                 
                 {/* Text content */}
                 <div className="flex-1">                  <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-poppins">
                     Available Doctors
                   </h1>
-                  <p className="text-base md:text-lg text-gray-600 mt-1">Hello Dr. Sarah Johnson, view your colleagues available today</p>
+                  <p className="text-base md:text-lg text-gray-600 mt-1">Hello Dr. {getUserDisplayName()}, view your colleagues available today</p>
                   
                   {/* Notification box */}
                   <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 mt-6 shadow-lg max-w-3xl">
@@ -74,7 +91,7 @@ export default function DoctorsPage() {
                   <div className="glass-morphism-dark px-4 py-2 rounded-lg text-white shadow-lg">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium">12 Doctors Online</span>
+                      <span className="text-sm font-medium">{doctors.length} Doctor{doctors.length === 1 ? '' : 's'} Online</span>
                     </div>
                   </div>
                   <div className="glass-morphism px-4 py-2 rounded-lg text-blue-800 shadow-lg">
@@ -127,7 +144,7 @@ export default function DoctorsPage() {
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{doctor.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{doctor.first_name} {doctor.last_name}</h3>
                     <p className="text-sm text-gray-600">{doctor.specialization}</p>
                   </div>
                 </div>

@@ -1,32 +1,77 @@
--- Create tables for MediOca
+-- UNIFIED DATABASE SETUP SCRIPT
+-- Run this entire script in your Supabase SQL Editor to set up or update your schema.
+
+-- Step 1: Create core tables if they don't exist
 
 -- Doctors table
-CREATE TABLE IF NOT EXISTS doctors (
+DROP TABLE IF EXISTS doctors CASCADE;
+CREATE TABLE doctors (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  specialization VARCHAR(255) NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  first_name VARCHAR(255),
+  last_name VARCHAR(255),
+  specialization VARCHAR(255),
   email VARCHAR(255) UNIQUE NOT NULL,
-  phone VARCHAR(20) NOT NULL,
-  experience INTEGER NOT NULL DEFAULT 0,
+  phone VARCHAR(20),
+  license_number VARCHAR(100),
+  years_of_experience INTEGER DEFAULT 0,
+  qualifications TEXT,
+  working_hours VARCHAR(255),
+  consultation_fee DECIMAL(10,2) DEFAULT 0,
+  bio TEXT,
+  availability_status VARCHAR(50) DEFAULT 'Available',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Patients table
-CREATE TABLE IF NOT EXISTS patients (
+DROP TABLE IF EXISTS patients CASCADE;
+CREATE TABLE patients (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   phone VARCHAR(20) NOT NULL,
   date_of_birth DATE NOT NULL,
   address TEXT,
   medical_history TEXT,
+  room_number TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enhanced Prescriptions table with better indexing
-CREATE TABLE IF NOT EXISTS prescriptions (
+-- Appointments table
+DROP TABLE IF EXISTS appointments CASCADE;
+CREATE TABLE appointments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  doctor_id UUID NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+  appointment_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  reason TEXT,
+  status VARCHAR(50) DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'completed', 'cancelled')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Patient Vitals table
+DROP TABLE IF EXISTS patient_vitals CASCADE;
+CREATE TABLE patient_vitals (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  doctor_id UUID NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+  heart_rate INTEGER,
+  blood_pressure VARCHAR(20),
+  temperature DECIMAL(4, 1),
+  oxygen_saturation DECIMAL(5, 2),
+  respiratory_rate INTEGER,
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Prescriptions table
+DROP TABLE IF EXISTS prescriptions CASCADE;
+CREATE TABLE prescriptions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
   doctor_id UUID NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
@@ -41,71 +86,106 @@ CREATE TABLE IF NOT EXISTS prescriptions (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enhanced indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_prescriptions_patient_id ON prescriptions(patient_id);
-CREATE INDEX IF NOT EXISTS idx_prescriptions_doctor_id ON prescriptions(doctor_id);
-CREATE INDEX IF NOT EXISTS idx_prescriptions_medication ON prescriptions(medication);
-CREATE INDEX IF NOT EXISTS idx_prescriptions_status ON prescriptions(status);
-CREATE INDEX IF NOT EXISTS idx_prescriptions_prescribed_date ON prescriptions(prescribed_date);
-CREATE INDEX IF NOT EXISTS idx_prescriptions_created_at ON prescriptions(created_at);
+-- Emergency Cases table
+DROP TABLE IF EXISTS emergency_cases CASCADE;
+CREATE TABLE emergency_cases (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  patient_name VARCHAR(255) NOT NULL,
+  location JSONB,
+  emergency_type VARCHAR(255) NOT NULL,
+  severity VARCHAR(50) CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+  status VARCHAR(50) CHECK (status IN ('pending', 'dispatched', 'en-route', 'arrived', 'completed')),
+  time_reported TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  estimated_arrival TIMESTAMP WITH TIME ZONE,
+  ambulance_id VARCHAR(100),
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- Add trigger to automatically update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+-- Step 2: Create functions and policies
+
+-- Temporarily disable RLS for development
+ALTER TABLE doctors DISABLE ROW LEVEL SECURITY;
+
+-- Create or replace the profile creation function
+CREATE OR REPLACE FUNCTION create_doctor_profile(
+    p_user_id UUID,
+    p_first_name VARCHAR,
+    p_last_name VARCHAR,
+    p_email VARCHAR,
+    p_phone VARCHAR,
+    p_specialization VARCHAR,
+    p_license_number VARCHAR,
+    p_years_of_experience INTEGER,
+    p_qualifications TEXT,
+    p_working_hours VARCHAR,
+    p_consultation_fee DECIMAL,
+    p_bio TEXT
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    result json;
+    new_doctor_id UUID;
 BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
+    INSERT INTO doctors (
+        user_id, first_name, last_name, email, phone, specialization, license_number,
+        years_of_experience, qualifications, working_hours, consultation_fee, bio,
+        availability_status, created_at, updated_at
+    ) VALUES (
+        p_user_id, p_first_name, p_last_name, p_email, p_phone, p_specialization, p_license_number,
+        p_years_of_experience, p_qualifications, p_working_hours, p_consultation_fee, p_bio,
+        'Available', NOW(), NOW()
+    ) RETURNING id INTO new_doctor_id;
+
+    result := json_build_object('success', true, 'message', 'Doctor profile created successfully', 'doctor_id', new_doctor_id);
+    RETURN result;
+EXCEPTION WHEN OTHERS THEN
+    result := json_build_object('success', false, 'message', SQLERRM, 'error_code', SQLSTATE, 'error_detail', SQLERRM);
+    RETURN result;
 END;
-$$ language 'plpgsql';
+$$;
 
-CREATE TRIGGER update_prescriptions_updated_at 
-    BEFORE UPDATE ON prescriptions 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+-- Grant execute permissions
+GRANT EXECUTE ON FUNCTION create_doctor_profile(UUID, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, INTEGER, TEXT, VARCHAR, DECIMAL, TEXT) TO authenticated, anon, service_role;
 
--- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_doctors_email ON doctors(email);
-CREATE INDEX IF NOT EXISTS idx_patients_email ON patients(email);
+-- Create policies for when RLS is re-enabled
+DROP POLICY IF EXISTS "Allow insert for authenticated users" ON doctors;
+CREATE POLICY "Allow insert for authenticated users" ON doctors FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
--- Insert sample data
-INSERT INTO doctors (name, specialization, email, phone, experience) VALUES
-('Dr. Sarah Johnson', 'Cardiology', 'sarah.johnson@medioca.com', '+1-555-0101', 15),
-('Dr. Michael Chen', 'Pediatrics', 'michael.chen@medioca.com', '+1-555-0102', 12),
-('Dr. Emily Rodriguez', 'Dermatology', 'emily.rodriguez@medioca.com', '+1-555-0103', 8),
-('Dr. David Wilson', 'Orthopedics', 'david.wilson@medioca.com', '+1-555-0104', 20),
-('Dr. Lisa Thompson', 'Neurology', 'lisa.thompson@medioca.com', '+1-555-0105', 18)
-ON CONFLICT (email) DO NOTHING;
+DROP POLICY IF EXISTS "Allow select for own profile" ON doctors;
+CREATE POLICY "Allow select for own profile" ON doctors FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
-INSERT INTO patients (name, email, phone, date_of_birth, address, medical_history) VALUES
-('John Smith', 'john.smith@email.com', '+1-555-1001', '1985-03-15', '123 Main St, Anytown, ST 12345', 'Hypertension, managed with medication'),
-('Maria Garcia', 'maria.garcia@email.com', '+1-555-1002', '1990-07-22', '456 Oak Ave, Somewhere, ST 67890', 'Diabetes Type 2, diet controlled'),
-('Robert Brown', 'robert.brown@email.com', '+1-555-1003', '1978-11-08', '789 Pine Rd, Elsewhere, ST 54321', 'Asthma, uses inhaler as needed'),
-('Jennifer Davis', 'jennifer.davis@email.com', '+1-555-1004', '1992-05-30', '321 Elm St, Nowhere, ST 98765', 'No significant medical history'),
-('William Miller', 'william.miller@email.com', '+1-555-1005', '1965-12-12', '654 Maple Dr, Anywhere, ST 13579', 'High cholesterol, on statin therapy')
-ON CONFLICT (email) DO NOTHING;
+DROP POLICY IF EXISTS "Allow update for own profile" ON doctors;
+CREATE POLICY "Allow update for own profile" ON doctors FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
--- Insert enhanced sample prescriptions
-INSERT INTO prescriptions (patient_id, doctor_id, medication, dosage, frequency, duration, instructions, status) 
-SELECT 
-    p.id as patient_id,
-    d.id as doctor_id,
-    medications.medication,
-    medications.dosage,
-    medications.frequency,
-    medications.duration,
-    medications.instructions,
-    'active'
-FROM patients p
-CROSS JOIN doctors d
-CROSS JOIN (
-    VALUES 
-    ('Amoxicillin', '500mg', 'Three times daily', '7 days', 'Take with food to reduce stomach upset'),
-    ('Lisinopril', '10mg', 'Once daily', '30 days', 'Take at the same time each day, monitor blood pressure'),
-    ('Metformin', '500mg', 'Twice daily', '90 days', 'Take with meals, monitor blood sugar levels'),
-    ('Atorvastatin', '20mg', 'Once daily at bedtime', '30 days', 'Avoid grapefruit juice'),
-    ('Omeprazole', '20mg', 'Once daily before breakfast', '14 days', 'Take 30 minutes before eating')
-) AS medications(medication, dosage, frequency, duration, instructions)
-WHERE p.email LIKE '%@email.com' 
-AND d.email LIKE '%@medioca.com'
-LIMIT 15
-ON CONFLICT DO NOTHING;
+-- Create user deletion function
+CREATE OR REPLACE FUNCTION delete_user_data(user_uuid UUID)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    result json;
+BEGIN
+    DELETE FROM doctors WHERE user_id = user_uuid;
+    DELETE FROM auth.users WHERE id = user_uuid;
+    result := json_build_object('success', true, 'message', 'User data deleted successfully');
+    RETURN result;
+EXCEPTION WHEN OTHERS THEN
+    result := json_build_object('success', false, 'message', SQLERRM, 'error_code', SQLSTATE);
+    RETURN result;
+END;
+$$;
+
+-- Grant permissions for user deletion
+GRANT EXECUTE ON FUNCTION delete_user_data(UUID) TO authenticated;
+
+DO $$
+BEGIN
+    RAISE NOTICE 'SUCCESS: Database setup script completed successfully!';
+END $$;
+

@@ -10,7 +10,8 @@ export interface VitalSigns {
 
 export interface Patient {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string;
   date_of_birth: string;

@@ -10,12 +10,20 @@ export interface Prescription {
   created_at?: string
   updated_at?: string
   doctors?: {
-    name: string
+    id: string
+    first_name: string
+    last_name: string
     specialization: string
+    email: string
   }
   patients?: {
-    name: string
+    id: string
+    first_name: string
+    last_name: string
     email: string
+    phone: string
+    date_of_birth: string
+    address: string
   }
   // For storing additional medication details
   medication_details?: MedicationDetails

@@ -16,6 +16,39 @@ interface Message {
 }
 
 export default function ChatPage() {
+  const isMedicalQuery = (text: string) => {
+    const medicalKeywords = [
+      "symptom",
+      "symptoms",
+      "diagnosis",
+      "diagnose",
+      "treatment",
+      "medicine",
+      "medication",
+      "drug",
+      "disease",
+      "condition",
+      "patient",
+      "therapy",
+      "prescription",
+      "side effect",
+      "pathology",
+      "clinic",
+      "doctor",
+      "nurse",
+      "vital",
+      "allergy",
+      "infection",
+      "injury",
+      "blood",
+      "scan",
+      "x-ray",
+      "mri",
+      "ct",
+    ]
+    const lower = text.toLowerCase()
+    return medicalKeywords.some((kw) => lower.includes(kw))
+  }
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -48,6 +81,22 @@ export default function ChatPage() {
     }
 
     setMessages((prev) => [...prev, userMessage])
+
+    // Check medical relevance
+    if (!isMedicalQuery(inputMessage)) {
+      const rejectMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "ai",
+        content:
+          "I'm sorry, I can only assist with medical‐related questions. Please ask a health or medical question.",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, rejectMessage])
+      setInputMessage("")
+      return
+    }
+
+    // Proceed with AI call
     setInputMessage("")
     setIsLoading(true)
 
