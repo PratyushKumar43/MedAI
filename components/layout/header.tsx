@@ -97,18 +97,19 @@ export function Header({ className }: HeaderProps) {
             )}
           </div>
         </div>
-          {/* Mobile time display - compact and better formatted */}
-        <div className="md:hidden flex items-center">
-          {currentTime && (
-            <div className="text-sm font-bold text-gray-900 bg-white/50 px-3 py-1 rounded-lg shadow-sm">
-              {currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-            </div>
-          )}
-        </div>
         
         {/* Right section - Action buttons and User */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Notifications */}          <Button
+          {/* Mobile time display - compact and better formatted */}
+          <div className="md:hidden flex items-center">
+            {currentTime && (
+              <div className="text-sm font-bold text-gray-900 bg-white/50 px-3 py-1 rounded-lg shadow-sm">
+                {currentTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+              </div>
+            )}
+          </div>
+          {/* Notifications */}
+          <Button
             variant="ghost"
             size="sm"
             className="relative glass-morphism hover:bg-white/70 p-2 sm:p-3 rounded-xl border border-white/30 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
@@ -119,7 +120,8 @@ export function Header({ className }: HeaderProps) {
                 {notifications}
               </span>
             )}
-          </Button>          {/* User Profile */}
+          </Button>
+          {/* User Profile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center glass-morphism px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-white/30 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group">

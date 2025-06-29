@@ -1,6 +1,7 @@
 export interface PatientDetails {
   id: string
-  name: string
+  first_name: string
+  last_name: string
   email: string
   phone: string
   date_of_birth: string
@@ -39,7 +40,8 @@ export interface PatientDetails {
     coverage_type: string
   }
   emergency_contact: {
-    name: string
+    first_name: string
+    last_name: string
     relationship: string
     phone: string
   }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { apiService } from "@/lib/api"
 import { Activity, Heart, Thermometer, Droplets } from "lucide-react"
 
 interface PatientVitals {
@@ -17,96 +18,46 @@ interface PatientVitals {
 }
 
 export default function HealthMonitorPage() {
-  const [patients, setPatients] = useState<PatientVitals[]>([
-    {
-      id: "1",
-      patientName: "John Smith",
-      room: "ICU-101",
-      heartRate: 72,
-      bloodPressure: "120/80",
-      temperature: 98.6,
-      oxygenSat: 98,
-      respiratoryRate: 16,
-      status: "stable",
-      lastUpdated: new Date()
-    },
-    {
-      id: "2",
-      patientName: "Maria Garcia",
-      room: "Ward-205",
-      heartRate: 88,
-      bloodPressure: "140/90",
-      temperature: 99.2,
-      oxygenSat: 95,
-      respiratoryRate: 18,
-      status: "warning",
-      lastUpdated: new Date()
-    },
-    {
-      id: "3",
-      patientName: "Robert Brown",
-      room: "ICU-102",
-      heartRate: 110,
-      bloodPressure: "160/100",
-      temperature: 101.3,
-      oxygenSat: 92,
-      respiratoryRate: 22,
-      status: "critical",
-      lastUpdated: new Date()
-    },
-    {
-      id: "4",
-      patientName: "Emily Johnson",
-      room: "Ward-210",
-      heartRate: 68,
-      bloodPressure: "110/70",
-      temperature: 98.2,
-      oxygenSat: 97,
-      respiratoryRate: 14,
-      status: "stable",
-      lastUpdated: new Date()
-    },
-    {
-      id: "5",
-      patientName: "Michael Wilson",
-      room: "ICU-105",
-      heartRate: 95,
-      bloodPressure: "150/95",
-      temperature: 100.4,
-      oxygenSat: 94,
-      respiratoryRate: 20,
-      status: "warning",
-      lastUpdated: new Date()
-    }
-  ])
-  
-  const [selectedPatient, setSelectedPatient] = useState<PatientVitals | null>(null)
-  const [filter, setFilter] = useState<"all" | "critical" | "warning" | "stable">("all")
+  const [patients, setPatients] = useState<PatientVitals[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<PatientVitals | null>(null);
+  const [filter, setFilter] = useState<"all" | "critical" | "warning" | "stable">("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      setPatients(prev => 
-        prev.map(patient => ({
-          ...patient,
-          heartRate: Math.max(40, Math.min(180, patient.heartRate + (Math.random() - 0.5) * 5)),
-          temperature: Math.max(95, Math.min(104, patient.temperature + (Math.random() - 0.5) * 0.3)),
-          oxygenSat: Math.max(85, Math.min(100, patient.oxygenSat + (Math.random() - 0.5) * 2)),
-          respiratoryRate: Math.max(10, Math.min(30, patient.respiratoryRate + (Math.random() - 0.5) * 2)),
-          lastUpdated: new Date(),
-          status: determineStatus({
-            ...patient,
-            heartRate: Math.max(40, Math.min(180, patient.heartRate + (Math.random() - 0.5) * 5)),
-            temperature: Math.max(95, Math.min(104, patient.temperature + (Math.random() - 0.5) * 0.3)),
-            oxygenSat: Math.max(85, Math.min(100, patient.oxygenSat + (Math.random() - 0.5) * 2)),
-            respiratoryRate: Math.max(10, Math.min(30, patient.respiratoryRate + (Math.random() - 0.5) * 2)),
-          })
-        }))
-      )
-    }, 3000)
+    const fetchVitals = async () => {
+      try {
+        setLoading(true);
+        const { data } = await apiService.getPatientVitals();
+        if (data) {
+          const patientsWithStatus = data.map(p => ({ ...p, status: determineStatus(p) }));
+          setPatients(patientsWithStatus);
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial patient vitals:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return () => clearInterval(interval)
-  }, [])
+    fetchVitals();
+
+    const channel = apiService.supabase
+      .channel('patient_vitals_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'patient_vitals' }, 
+        async (payload) => {
+          console.log('Change received!', payload);
+          // Refetch all vitals to ensure data consistency
+          // A more optimized approach would be to process the payload (new/updated record)
+          await fetchVitals(); 
+        }
+      )
+      .subscribe();
+
+    return () => {
+      apiService.supabase.removeChannel(channel);
+    };
+  }, []);
 
   const determineStatus = (patient: Omit<PatientVitals, 'status'>): "stable" | "warning" | "critical" => {
     if (

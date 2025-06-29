@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { apiService } from '@/lib/api'
 import { useAuth } from '@/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -76,7 +77,7 @@ export default function SignUpPage() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -92,6 +93,23 @@ export default function SignUpPage() {
       if (error) {
         setError(error.message)
       } else {
+        // If the user registered as a doctor, create a corresponding doctor record
+        if (formData.role === 'doctor' && formData.firstName && formData.lastName) {
+          try {
+            await apiService.createDoctor({
+              user_id: data?.user?.id,
+              email: formData.email,
+              phone: formData.phone,
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              name: `${formData.firstName} ${formData.lastName}`,
+              specialization: '',
+            })
+          } catch (doctorErr) {
+            console.error('Error creating doctor record:', doctorErr)
+          }
+        }
+
         setSuccess('Please check your email for verification link!')
         setTimeout(() => {
           router.push('/auth/sign-in')
